@@ -1,0 +1,25 @@
+# Dependencies
+node_modules/
+
+# Build outputs / coverage
+dist/
+build/
+coverage/
+
+# Caches and temps
+.cache/
+.tmp/
+tmp/
+temp/
+
+# IDE/editor
+.vscode/
+.idea/
+
+# Test snapshots
+*.snap
+
+# Lockfiles (not to be formatted)
+package-lock.json
+pnpm-lock.yaml
+yarn.lock
