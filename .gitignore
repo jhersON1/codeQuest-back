@@ -4,6 +4,7 @@
 /build
 
 # Logs
+/db_data
 logs
 *.log
 npm-debug.log*
