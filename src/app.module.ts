@@ -6,6 +6,7 @@ import { ContentManagementModule } from './content-management/content-management
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { ConfigModule } from '@nestjs/config';
 import { CommentsModule } from './comments/comments.module';
+import { ReactionsViewsModule } from './reactions-views/reactions-views.module';
 
 @Module({
   imports: [
@@ -23,6 +24,7 @@ import { CommentsModule } from './comments/comments.module';
     AuthModule,
     ContentManagementModule,
     CommentsModule,
+    ReactionsViewsModule,
   ],
   controllers: [AppController],
   providers: [AppService],
