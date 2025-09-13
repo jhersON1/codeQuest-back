@@ -7,6 +7,7 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { ConfigModule } from '@nestjs/config';
 import { CommentsModule } from './comments/comments.module';
 import { ReactionsViewsModule } from './reactions-views/reactions-views.module';
+import { BookmarksModule } from './bookmarks/bookmarks.module';
 
 @Module({
   imports: [
@@ -25,6 +26,7 @@ import { ReactionsViewsModule } from './reactions-views/reactions-views.module';
     ContentManagementModule,
     CommentsModule,
     ReactionsViewsModule,
+    BookmarksModule,
   ],
   controllers: [AppController],
   providers: [AppService],
