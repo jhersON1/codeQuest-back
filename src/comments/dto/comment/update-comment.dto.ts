@@ -15,4 +15,3 @@ export class UpdateCommentDto {
   @IsEnum(CommentStatus)
   status?: CommentStatus;
 }
-

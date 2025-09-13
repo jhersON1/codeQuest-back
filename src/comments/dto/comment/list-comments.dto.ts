@@ -42,4 +42,3 @@ export class ListCommentsDto {
   @IsString()
   sort?: CommentSort;
 }
-

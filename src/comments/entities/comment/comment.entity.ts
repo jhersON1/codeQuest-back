@@ -39,4 +39,3 @@ export class Comment {
   @Column({ name: 'deleted_at', type: 'timestamptz', nullable: true })
   deleted_at!: Date | null;
 }
-

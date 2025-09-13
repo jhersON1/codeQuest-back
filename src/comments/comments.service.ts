@@ -17,7 +17,7 @@ export class CommentsService {
 
   private buildMeta(page: number, limit: number, total: number) {
     return { page, limit, total, hasNextPage: page * limit < total };
-    }
+  }
 
   private applySort(qb: SelectQueryBuilder<Comment>, sort?: CommentSort) {
     switch (sort) {
@@ -46,16 +46,20 @@ export class CommentsService {
     const comment = await this.commentRepo.findOne({
       where: { comment_id: id, deleted_at: IsNull() },
     });
+
     if (!comment) throw new NotFoundException('Comentario no encontrado');
 
     let edited = false;
+
     if (dto.body !== undefined && dto.body !== comment.body) {
       comment.body = dto.body;
       edited = true;
     }
+
     if (dto.status !== undefined) {
       comment.status = dto.status;
     }
+
     if (edited) comment.edited_at = new Date();
 
     return this.commentRepo.save(comment);
@@ -65,6 +69,7 @@ export class CommentsService {
     const comment = await this.commentRepo.findOne({
       where: { comment_id: id, deleted_at: IsNull() },
     });
+
     if (!comment) throw new NotFoundException('Comentario no encontrado');
 
     comment.deleted_at = new Date();
@@ -75,7 +80,9 @@ export class CommentsService {
     const comment = await this.commentRepo.findOne({
       where: { comment_id: id, deleted_at: IsNull() },
     });
+
     if (!comment) throw new NotFoundException('Comentario no encontrado');
+
     return comment;
   }
 
@@ -102,4 +109,3 @@ export class CommentsService {
     return { data, meta: this.buildMeta(page, limit, total) };
   }
 }
-
