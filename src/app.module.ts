@@ -8,6 +8,7 @@ import { ConfigModule } from '@nestjs/config';
 import { CommentsModule } from './comments/comments.module';
 import { ReactionsViewsModule } from './reactions-views/reactions-views.module';
 import { BookmarksModule } from './bookmarks/bookmarks.module';
+import { FollowsModule } from './follows/follows.module';
 
 @Module({
   imports: [
@@ -27,6 +28,7 @@ import { BookmarksModule } from './bookmarks/bookmarks.module';
     CommentsModule,
     ReactionsViewsModule,
     BookmarksModule,
+    FollowsModule,
   ],
   controllers: [AppController],
   providers: [AppService],
