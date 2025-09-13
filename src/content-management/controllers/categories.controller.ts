@@ -8,8 +8,6 @@ import {
   Patch,
   Post as HttpPost,
   Query,
-  UsePipes,
-  ValidationPipe,
 } from '@nestjs/common';
 import { ApiTags } from '@nestjs/swagger';
 import { CategoriesService } from '../services/categories.service';
@@ -23,13 +21,11 @@ export class CategoriesController {
   constructor(private readonly categoriesService: CategoriesService) {}
 
   @HttpPost('')
-  @UsePipes(new ValidationPipe({ transform: true }))
   create(@Body() dto: CreateCategoryDto) {
     return this.categoriesService.create(dto);
   }
 
   @Get('')
-  @UsePipes(new ValidationPipe({ transform: true }))
   list(@Query() query: ListCategoriesDto) {
     return this.categoriesService.list(query);
   }
@@ -40,7 +36,6 @@ export class CategoriesController {
   }
 
   @Patch(':id')
-  @UsePipes(new ValidationPipe({ transform: true }))
   update(@Param('id', ParseIntPipe) id: number, @Body() dto: UpdateCategoryDto) {
     return this.categoriesService.update(id, dto);
   }

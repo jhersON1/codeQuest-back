@@ -8,8 +8,6 @@ import {
   Patch,
   Post as HttpPost,
   Query,
-  UsePipes,
-  ValidationPipe,
 } from '@nestjs/common';
 import { ApiTags } from '@nestjs/swagger';
 import { TagsService } from '../services/tags.service';
@@ -23,13 +21,11 @@ export class TagsController {
   constructor(private readonly tagsService: TagsService) {}
 
   @HttpPost('')
-  @UsePipes(new ValidationPipe({ transform: true }))
   create(@Body() dto: CreateTagDto) {
     return this.tagsService.create(dto);
   }
 
   @Get('')
-  @UsePipes(new ValidationPipe({ transform: true }))
   list(@Query() query: ListTagsDto) {
     return this.tagsService.list(query);
   }
@@ -40,7 +36,6 @@ export class TagsController {
   }
 
   @Patch(':id')
-  @UsePipes(new ValidationPipe({ transform: true }))
   update(@Param('id', ParseIntPipe) id: number, @Body() dto: UpdateTagDto) {
     return this.tagsService.update(id, dto);
   }

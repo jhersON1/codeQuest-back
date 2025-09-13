@@ -8,8 +8,6 @@ import {
   Patch,
   Post as HttpPost,
   Query,
-  UsePipes,
-  ValidationPipe,
 } from '@nestjs/common';
 import { ApiTags } from '@nestjs/swagger';
 import { PostsService } from '../services/posts.service';
@@ -23,13 +21,11 @@ export class PostsController {
   constructor(private readonly postsService: PostsService) {}
 
   @HttpPost('')
-  @UsePipes(new ValidationPipe({ transform: true }))
   create(@Body() dto: CreatePostDto) {
     return this.postsService.create(dto);
   }
 
   @Get('')
-  @UsePipes(new ValidationPipe({ transform: true }))
   list(@Query() query: ListPostsDto) {
     return this.postsService.list(query);
   }
@@ -40,7 +36,6 @@ export class PostsController {
   }
 
   @Patch(':id')
-  @UsePipes(new ValidationPipe({ transform: true }))
   update(@Param('id', ParseIntPipe) id: number, @Body() dto: UpdatePostDto) {
     return this.postsService.update(id, dto);
   }
