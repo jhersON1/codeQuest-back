@@ -6,6 +6,7 @@
   "private": true,
   "license": "UNLICENSED",
   "scripts": {
+    "seed": "ts-node src/seed/seed.ts",
     "build": "nest build",
     "format": "prettier --write .",
     "prettier:check": "prettier --check .",
