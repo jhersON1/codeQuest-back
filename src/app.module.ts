@@ -5,6 +5,7 @@ import { AuthModule } from './auth/auth.module';
 import { ContentManagementModule } from './content-management/content-management.module';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { ConfigModule } from '@nestjs/config';
+import { CommentsModule } from './comments/comments.module';
 
 @Module({
   imports: [
@@ -21,6 +22,7 @@ import { ConfigModule } from '@nestjs/config';
     }),
     AuthModule,
     ContentManagementModule,
+    CommentsModule,
   ],
   controllers: [AppController],
   providers: [AppService],
