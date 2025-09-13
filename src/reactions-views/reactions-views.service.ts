@@ -49,7 +49,6 @@ export class ReactionsViewsService {
     }
   }
 
-  // Reactions
   async createReaction(dto: CreateReactionDto): Promise<Reaction> {
     if (dto.userId) {
       const existing = await this.reactionRepo.findOne({
@@ -72,7 +71,6 @@ export class ReactionsViewsService {
       return this.reactionRepo.save(reaction);
     }
 
-    // anonymous: allow multiple rows
     const reaction = this.reactionRepo.create({
       user_id: null,
       entity_type: dto.entityType,
@@ -128,7 +126,6 @@ export class ReactionsViewsService {
     if (!res.affected) throw new NotFoundException('Reacción no encontrada');
   }
 
-  // Views
   async createView(dto: CreateViewDto): Promise<View> {
     const view = this.viewRepo.create({
       entity_type: dto.entityType,
