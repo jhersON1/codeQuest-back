@@ -1,0 +1,39 @@
+import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
+import { IsInt, IsOptional, IsString, Max, MaxLength, Min, ValidateIf } from 'class-validator';
+import { Type } from 'class-transformer';
+
+export type BookmarkSort = 'created_at_desc' | 'created_at_asc';
+
+export class ListBookmarksDto {
+  @ApiProperty({ example: 1, minimum: 1, description: 'Página (>= 1)' })
+  @Type(() => Number)
+  @IsInt()
+  @Min(1)
+  page!: number;
+
+  @ApiProperty({ example: 10, minimum: 1, maximum: 50, description: 'Límite por página (1-50)' })
+  @Type(() => Number)
+  @IsInt()
+  @Min(1)
+  @Max(50)
+  limit!: number;
+
+  @ApiPropertyOptional({ example: 42, description: 'Filtrar por ID de usuario' })
+  @Type(() => Number)
+  @IsOptional()
+  @ValidateIf((dto) => (dto as ListBookmarksDto).sessionId === undefined)
+  @IsInt()
+  @Min(1)
+  userId?: number;
+
+  @ApiPropertyOptional({ example: 'anon-abc123', description: 'Filtrar por ID de sesión anónima' })
+  @IsOptional()
+  @ValidateIf((dto) => (dto as ListBookmarksDto).userId === undefined)
+  @IsString()
+  @MaxLength(200)
+  sessionId?: string;
+
+  @ApiPropertyOptional({ example: 'created_at_desc', description: 'Orden' })
+  @IsOptional()
+  sort?: BookmarkSort;
+}
