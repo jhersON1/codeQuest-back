@@ -32,5 +32,6 @@ import { FollowsModule } from './follows/follows.module';
   ],
   controllers: [AppController],
   providers: [AppService],
+  exports: [TypeOrmModule],
 })
 export class AppModule {}
