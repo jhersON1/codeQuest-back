@@ -50,8 +50,11 @@ export class TagsService {
 
   async update(id: number, dto: UpdateTagDto): Promise<Tag> {
     const tag = await this.tagRepo.findOne({ where: { tag_id: id } });
+
     if (!tag) throw new NotFoundException('Tag no encontrado');
+
     if (dto.name !== undefined) tag.name = dto.name;
+
     if (dto.slug !== undefined) {
       tag.slug = await this.slugService.generateUniqueSlug(
         dto.slug || tag.name,
@@ -60,18 +63,22 @@ export class TagsService {
         id,
       );
     }
+
     return this.tagRepo.save(tag);
   }
 
   async delete(id: number): Promise<void> {
     const result = await this.tagRepo.delete({ tag_id: id });
+
     if (!result.affected) throw new NotFoundException('Tag no encontrado');
   }
 
   async list(params: ListTagsDto): Promise<Paginated<Tag>> {
     const { page, limit, q, sort } = params;
     const qb = this.tagRepo.createQueryBuilder('tag');
+
     if (q) qb.andWhere('(tag.name ILIKE :q OR tag.slug ILIKE :q)', { q: `%${q}%` });
+
     this.applyTagSort(qb, sort ?? 'created_at_desc');
     const total = await qb.getCount();
     const data = await qb
@@ -83,24 +90,31 @@ export class TagsService {
 
   async findBySlug(slug: string): Promise<Tag> {
     const tag = await this.tagRepo.findOne({ where: { slug } });
+
     if (!tag) throw new NotFoundException('Tag no encontrado');
+
     return tag;
   }
 
   async resolveByRefs(refs: { tagIds?: number[]; tagSlugs?: string[] }): Promise<Tag[]> {
     const ids = Array.from(new Set(refs.tagIds ?? []));
     const slugs = Array.from(new Set((refs.tagSlugs ?? []).map((s) => s.toLowerCase())));
+
     if (ids.length === 0 && slugs.length === 0) return [];
 
     const wheres: FindOptionsWhere<Tag>[] = [];
+
     if (ids.length) wheres.push({ tag_id: In(ids) });
+
     if (slugs.length) wheres.push({ slug: In(slugs) });
+
     const found = await this.tagRepo.find({ where: wheres });
 
     const foundIds = new Set(found.map((t) => t.tag_id));
     const foundSlugs = new Set(found.map((t) => t.slug));
     const missingIds = ids.filter((id) => !foundIds.has(id));
     const missingSlugs = slugs.filter((s) => !foundSlugs.has(s));
+
     if (missingIds.length || missingSlugs.length) {
       throw new BadRequestException({
         message: 'Tags no encontrados',
@@ -108,6 +122,7 @@ export class TagsService {
         missingSlugs,
       });
     }
+
     return found;
   }
 }

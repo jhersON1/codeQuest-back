@@ -50,8 +50,11 @@ export class CategoriesService {
 
   async update(id: number, dto: UpdateCategoryDto): Promise<Category> {
     const category = await this.categoryRepo.findOne({ where: { category_id: id } });
+
     if (!category) throw new NotFoundException('Categoría no encontrada');
+
     if (dto.name !== undefined) category.name = dto.name;
+
     if (dto.slug !== undefined) {
       category.slug = await this.slugService.generateUniqueSlug(
         dto.slug || category.name,
@@ -60,18 +63,22 @@ export class CategoriesService {
         id,
       );
     }
+
     return this.categoryRepo.save(category);
   }
 
   async delete(id: number): Promise<void> {
     const result = await this.categoryRepo.delete({ category_id: id });
+
     if (!result.affected) throw new NotFoundException('Categoría no encontrada');
   }
 
   async list(params: ListCategoriesDto): Promise<Paginated<Category>> {
     const { page, limit, q, sort } = params;
     const qb = this.categoryRepo.createQueryBuilder('category');
+
     if (q) qb.andWhere('(category.name ILIKE :q OR category.slug ILIKE :q)', { q: `%${q}%` });
+
     this.applyCategorySort(qb, sort ?? 'created_at_desc');
     const total = await qb.getCount();
     const data = await qb
@@ -83,7 +90,9 @@ export class CategoriesService {
 
   async findBySlug(slug: string): Promise<Category> {
     const category = await this.categoryRepo.findOne({ where: { slug } });
+
     if (!category) throw new NotFoundException('Categoría no encontrada');
+
     return category;
   }
 
@@ -93,17 +102,22 @@ export class CategoriesService {
   }): Promise<Category[]> {
     const ids = Array.from(new Set(refs.categoryIds ?? []));
     const slugs = Array.from(new Set((refs.categorySlugs ?? []).map((s) => s.toLowerCase())));
+
     if (ids.length === 0 && slugs.length === 0) return [];
 
     const wheres: FindOptionsWhere<Category>[] = [];
+
     if (ids.length) wheres.push({ category_id: In(ids) });
+
     if (slugs.length) wheres.push({ slug: In(slugs) });
+
     const found = await this.categoryRepo.find({ where: wheres });
 
     const foundIds = new Set(found.map((c) => c.category_id));
     const foundSlugs = new Set(found.map((c) => c.slug));
     const missingIds = ids.filter((id) => !foundIds.has(id));
     const missingSlugs = slugs.filter((s) => !foundSlugs.has(s));
+
     if (missingIds.length || missingSlugs.length) {
       throw new BadRequestException({
         message: 'Categorías no encontradas',
@@ -111,6 +125,7 @@ export class CategoriesService {
         missingSlugs,
       });
     }
+
     return found;
   }
 }

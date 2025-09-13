@@ -24,12 +24,17 @@ export class SlugService {
     const baseSlug = this.slugify(base);
     let slug = baseSlug;
     let i = 1;
+
     while (true) {
       const qb = repo.createQueryBuilder('e').where('e.slug = :slug', { slug });
+
       if (excludeIdField && excludeIdValue)
         qb.andWhere(`e.${excludeIdField} != :id`, { id: excludeIdValue });
+
       const exists = await qb.getExists();
+
       if (!exists) return slug;
+
       i += 1;
       slug = `${baseSlug}-${i}`;
     }

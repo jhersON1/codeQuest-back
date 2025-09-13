@@ -60,6 +60,7 @@ export class PostsService {
   async create(dto: CreatePostDto): Promise<Post> {
     const status = dto.status ?? PostStatus.Draft;
     const publishedAt = dto.publishedAt ? new Date(dto.publishedAt) : null;
+
     if (status === PostStatus.Published && !publishedAt) {
       throw new BadRequestException('publishedAt es requerido cuando status = published');
     }
@@ -85,19 +86,23 @@ export class PostsService {
       tagIds: dto.tagIds,
       tagSlugs: dto.tagSlugs,
     });
+
     if (categories.length) {
       await this.postCategoryRepo.save(
         categories.map((c) => ({ post_id: saved.post_id, category_id: c.category_id })),
       );
     }
+
     if (tags.length) {
       await this.postTagRepo.save(tags.map((t) => ({ post_id: saved.post_id, tag_id: t.tag_id })));
     }
+
     return saved;
   }
 
   async update(id: number, dto: UpdatePostDto): Promise<Post> {
     const post = await this.postRepo.findOne({ where: { post_id: id } });
+
     if (!post) throw new NotFoundException('Post no encontrado');
 
     if (dto.title && dto.title !== post.title) {
@@ -109,17 +114,25 @@ export class PostsService {
         post.post_id,
       );
     }
+
     if (dto.excerpt !== undefined) post.excerpt = dto.excerpt ?? null;
+
     if (dto.body !== undefined) post.body = dto.body;
+
     if (dto.status !== undefined) post.status = dto.status;
+
     if (dto.visibility !== undefined) post.visibility = dto.visibility;
+
     if (dto.coverImageId !== undefined) post.cover_image_id = dto.coverImageId ?? null;
 
     const newPublishedAt = dto.publishedAt ? new Date(dto.publishedAt) : undefined;
+
     if (post.status === PostStatus.Published) {
       const effective = newPublishedAt ?? post.published_at;
+
       if (!effective)
         throw new BadRequestException('publishedAt es requerido cuando status = published');
+
       post.published_at = effective;
     } else if (newPublishedAt !== undefined) {
       post.published_at = newPublishedAt;
@@ -129,35 +142,41 @@ export class PostsService {
 
     const hasCatRefs = dto.categoryIds !== undefined || dto.categorySlugs !== undefined;
     const hasTagRefs = dto.tagIds !== undefined || dto.tagSlugs !== undefined;
+
     if (hasCatRefs) {
       await this.postCategoryRepo.delete({ post_id: updated.post_id });
       const categories = await this.categoriesService.resolveByRefs({
         categoryIds: dto.categoryIds,
         categorySlugs: dto.categorySlugs,
       });
+
       if (categories.length) {
         await this.postCategoryRepo.save(
           categories.map((c) => ({ post_id: updated.post_id, category_id: c.category_id })),
         );
       }
     }
+
     if (hasTagRefs) {
       await this.postTagRepo.delete({ post_id: updated.post_id });
       const tags = await this.tagsService.resolveByRefs({
         tagIds: dto.tagIds,
         tagSlugs: dto.tagSlugs,
       });
+
       if (tags.length) {
         await this.postTagRepo.save(
           tags.map((t) => ({ post_id: updated.post_id, tag_id: t.tag_id })),
         );
       }
     }
+
     return updated;
   }
 
   async delete(id: number): Promise<void> {
     const result = await this.postRepo.delete({ post_id: id });
+
     if (!result.affected) throw new NotFoundException('Post no encontrado');
   }
 
@@ -175,14 +194,19 @@ export class PostsService {
       sort,
     } = params;
     const qb = this.postRepo.createQueryBuilder('post');
+
     if (q) qb.andWhere('(post.title ILIKE :q OR post.body ILIKE :q)', { q: `%${q}%` });
+
     if (status) qb.andWhere('post.status = :status', { status });
+
     if (visibility) qb.andWhere('post.visibility = :visibility', { visibility });
 
     if ((categoryIds && categoryIds.length) || (categorySlugs && categorySlugs.length)) {
       qb.innerJoin(PostCategory, 'pc', 'pc.post_id = post.post_id');
+
       if (categoryIds && categoryIds.length)
         qb.andWhere('pc.category_id IN (:...cids)', { cids: categoryIds });
+
       if (categorySlugs && categorySlugs.length) {
         qb.innerJoin(Category, 'c', 'c.category_id = pc.category_id').andWhere(
           'c.slug IN (:...cslugs)',
@@ -192,15 +216,19 @@ export class PostsService {
         );
       }
     }
+
     if ((tagIds && tagIds.length) || (tagSlugs && tagSlugs.length)) {
       qb.innerJoin(PostTag, 'pt', 'pt.post_id = post.post_id');
+
       if (tagIds && tagIds.length) qb.andWhere('pt.tag_id IN (:...tids)', { tids: tagIds });
+
       if (tagSlugs && tagSlugs.length) {
         qb.innerJoin(Tag, 't', 't.tag_id = pt.tag_id').andWhere('t.slug IN (:...tslugs)', {
           tslugs: tagSlugs,
         });
       }
     }
+
     this.applyPostSort(qb, sort ?? 'published_at_desc');
     const total = await qb.getCount();
     const data = await qb
@@ -212,7 +240,9 @@ export class PostsService {
 
   async findBySlug(slug: string): Promise<Post> {
     const post = await this.postRepo.findOne({ where: { slug } });
+
     if (!post) throw new NotFoundException('Post no encontrado');
+
     return post;
   }
 }
