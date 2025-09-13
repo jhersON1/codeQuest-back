@@ -1,0 +1,71 @@
+import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
+import { IsArray, IsEnum, IsInt, IsOptional, IsString, Max, Min } from 'class-validator';
+import { Type } from 'class-transformer';
+import { PostStatus, PostVisibility } from '../../entities/post/post.entity';
+
+export type PostSort =
+  | 'published_at_desc'
+  | 'published_at_asc'
+  | 'created_at_desc'
+  | 'created_at_asc';
+
+export class ListPostsDto {
+  @ApiProperty({ example: 1, minimum: 1, description: 'Página (≥ 1)' })
+  @Type(() => Number)
+  @IsInt()
+  @Min(1)
+  page!: number;
+
+  @ApiProperty({ example: 10, minimum: 1, maximum: 50, description: 'Límite por página (1–50)' })
+  @Type(() => Number)
+  @IsInt()
+  @Min(1)
+  @Max(50)
+  limit!: number;
+
+  @ApiPropertyOptional({ example: 'nestjs', description: 'Búsqueda por título/cuerpo (ILIKE)' })
+  @IsOptional()
+  @IsString()
+  q?: string;
+
+  @ApiPropertyOptional({ enum: PostStatus, example: PostStatus.Published })
+  @IsOptional()
+  @IsEnum(PostStatus)
+  status?: PostStatus;
+
+  @ApiPropertyOptional({ enum: PostVisibility, example: PostVisibility.Public })
+  @IsOptional()
+  @IsEnum(PostVisibility)
+  visibility?: PostVisibility;
+
+  @ApiPropertyOptional({ example: [1, 2] })
+  @IsOptional()
+  @IsArray()
+  @Type(() => Number)
+  @IsInt({ each: true })
+  categoryIds?: number[];
+
+  @ApiPropertyOptional({ example: ['backend', 'node'] })
+  @IsOptional()
+  @IsArray()
+  @IsString({ each: true })
+  categorySlugs?: string[];
+
+  @ApiPropertyOptional({ example: [10, 20] })
+  @IsOptional()
+  @IsArray()
+  @Type(() => Number)
+  @IsInt({ each: true })
+  tagIds?: number[];
+
+  @ApiPropertyOptional({ example: ['nestjs', 'orm'] })
+  @IsOptional()
+  @IsArray()
+  @IsString({ each: true })
+  tagSlugs?: string[];
+
+  @ApiPropertyOptional({ example: 'published_at_desc', description: 'Orden' })
+  @IsOptional()
+  @IsString()
+  sort?: PostSort;
+}
