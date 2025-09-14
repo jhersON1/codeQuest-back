@@ -26,9 +26,7 @@ export class AuthService {
 
       await this.userRepository.save(user);
 
-      return {
-        token: this.generateJwt({ user_id: user.user_id }),
-      };
+      return this.generateJwt({ user_id: user.user_id });
     } catch (error) {
       console.log(error);
       throw new InternalServerErrorException('An error has ocurred');
@@ -45,15 +43,27 @@ export class AuthService {
 
     if (!user) throw new UnauthorizedException('User not found');
 
-    if (!(await argon2.verify(user.password, password)))
+    if (!(await argon2.verify(user.password as string, password)))
       throw new UnauthorizedException('Invalid credentials');
 
-    return {
-      token: this.generateJwt({ user_id: user.user_id }),
-    };
+    return this.generateJwt({ user_id: user.user_id });
+  }
+
+  async loginDiscordUser(discordId: string): Promise<User | null> {
+    const user = await this.userRepository.findOneBy({ discordId });
+
+    return user;
+  }
+
+  async registerDiscordUser(discordId: string, discordUsername: string): Promise<User> {
+    const user: User = this.userRepository.create({ discordId, username: discordUsername });
+
+    await this.userRepository.save(user);
+
+    return user;
   }
 
   generateJwt(payload: JwtPayload) {
-    return this.jwtService.sign(payload);
+    return { token: this.jwtService.sign(payload) };
   }
 }
