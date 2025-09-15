@@ -14,19 +14,27 @@ export class User {
 
   @Column('varchar', {
     length: 100,
+    nullable: true,
+  })
+  discordId?: string;
+
+  @Column('varchar', {
+    length: 100,
   })
   username: string;
 
   @Column('varchar', {
     length: 150,
     unique: true,
+    nullable: true,
   })
   email: string;
 
   @Column('varchar', {
     length: 255,
+    nullable: true,
   })
-  password: string;
+  password?: string;
 
   @Column('enum', {
     enum: UserRoles,
