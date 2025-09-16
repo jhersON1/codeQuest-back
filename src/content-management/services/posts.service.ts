@@ -1,4 +1,9 @@
-import { BadRequestException, ForbiddenException, Injectable, NotFoundException } from '@nestjs/common';
+import {
+  BadRequestException,
+  ForbiddenException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, SelectQueryBuilder } from 'typeorm';
 import { Post, PostStatus, PostVisibility } from '../entities/post/post.entity';
@@ -7,7 +12,11 @@ import { PostTag } from '../entities/post/post-tag.entity';
 import { Category } from '../entities/category/category.entity';
 import { Tag } from '../entities/tag/tag.entity';
 import { Comment, CommentStatus } from '../../comments/entities/comment/comment.entity';
-import { Reaction, ReactionType, ReactionEntityType } from '../../reactions-views/entities/reaction/reaction.entity';
+import {
+  Reaction,
+  ReactionType,
+  ReactionEntityType,
+} from '../../reactions-views/entities/reaction/reaction.entity';
 import { CreatePostDto } from '../dto/post/create-post.dto';
 import { UpdatePostDto } from '../dto/post/update-post.dto';
 import { ListPostsDto, PostSort } from '../dto/post/list-posts.dto';
@@ -39,34 +48,34 @@ export class PostsService {
 
   private addCountsToQuery(qb: SelectQueryBuilder<Post>) {
     qb.leftJoinAndSelect('post.author', 'author')
-    .leftJoin(
-      (subQuery) =>
-        subQuery
-          .select('comment.post_id', 'post_id')
-          .addSelect('COUNT(*)', 'comment_count')
-          .from(Comment, 'comment')
-          .where('comment.status IN (:...statuses)', { 
-            statuses: [CommentStatus.Approved, CommentStatus.Pending] 
-          })
-          .andWhere('comment.deleted_at IS NULL')
-          .groupBy('comment.post_id'),
-      'cc',
-      'cc.post_id = post.post_id'
-    )
-    .leftJoin(
-      (subQuery) =>
-        subQuery
-          .select('reaction.entity_id', 'entity_id')
-          .addSelect('COUNT(*)', 'like_count')
-          .from(Reaction, 'reaction')
-          .where('reaction.entity_type = :postType', { postType: ReactionEntityType.Post })
-          .andWhere('reaction.type = :likeType', { likeType: ReactionType.Like })
-          .groupBy('reaction.entity_id'),
-      'rc',
-      'rc.entity_id = post.post_id'
-    )
-    .addSelect('COALESCE(cc.comment_count, 0)', 'commentCount')
-    .addSelect('COALESCE(rc.like_count, 0)', 'likeCount');
+      .leftJoin(
+        (subQuery) =>
+          subQuery
+            .select('comment.post_id', 'post_id')
+            .addSelect('COUNT(*)', 'comment_count')
+            .from(Comment, 'comment')
+            .where('comment.status IN (:...statuses)', {
+              statuses: [CommentStatus.Approved, CommentStatus.Pending],
+            })
+            .andWhere('comment.deleted_at IS NULL')
+            .groupBy('comment.post_id'),
+        'cc',
+        'cc.post_id = post.post_id',
+      )
+      .leftJoin(
+        (subQuery) =>
+          subQuery
+            .select('reaction.entity_id', 'entity_id')
+            .addSelect('COUNT(*)', 'like_count')
+            .from(Reaction, 'reaction')
+            .where('reaction.entity_type = :postType', { postType: ReactionEntityType.Post })
+            .andWhere('reaction.type = :likeType', { likeType: ReactionType.Like })
+            .groupBy('reaction.entity_id'),
+        'rc',
+        'rc.entity_id = post.post_id',
+      )
+      .addSelect('COALESCE(cc.comment_count, 0)', 'commentCount')
+      .addSelect('COALESCE(rc.like_count, 0)', 'likeCount');
 
     return qb;
   }
@@ -146,6 +155,7 @@ export class PostsService {
 
     const isOwner = post.author_user_id === currentUser.user_id;
     const isAdmin = currentUser.role === UserRoles.ADMIN;
+
     if (!isOwner && !isAdmin) throw new ForbiddenException('No autorizado');
 
     if (dto.title && dto.title !== post.title) {
@@ -217,7 +227,7 @@ export class PostsService {
     return updated;
   }
 
-  async delete(id: number, currentUser: User): Promise<void> {
+  async delete(id: number): Promise<void> {
     const result = await this.postRepo.delete({ post_id: id });
 
     if (!result.affected) throw new NotFoundException('Post no encontrado');
@@ -237,7 +247,7 @@ export class PostsService {
       sort,
     } = params;
     const qb = this.postRepo.createQueryBuilder('post');
-    
+
     // Agregar conteos de comentarios y likes
     this.addCountsToQuery(qb);
 
@@ -276,49 +286,56 @@ export class PostsService {
     }
 
     this.applyPostSort(qb, sort ?? 'published_at_desc');
-    
+
     // Para el conteo total, usamos una consulta separada sin los JOINs de conteo
     const countQb = this.postRepo.createQueryBuilder('post');
+
     if (q) countQb.andWhere('(post.title ILIKE :q OR post.body ILIKE :q)', { q: `%${q}%` });
+
     if (status) countQb.andWhere('post.status = :status', { status });
+
     if (visibility) countQb.andWhere('post.visibility = :visibility', { visibility });
-    
+
     // Aplicar los mismos filtros de categorías y tags para el conteo
     if ((categoryIds && categoryIds.length) || (categorySlugs && categorySlugs.length)) {
       countQb.innerJoin(PostCategory, 'pc', 'pc.post_id = post.post_id');
+
       if (categoryIds && categoryIds.length)
         countQb.andWhere('pc.category_id IN (:...cids)', { cids: categoryIds });
+
       if (categorySlugs && categorySlugs.length) {
-        countQb.innerJoin(Category, 'c', 'c.category_id = pc.category_id').andWhere(
-          'c.slug IN (:...cslugs)',
-          { cslugs: categorySlugs }
-        );
+        countQb
+          .innerJoin(Category, 'c', 'c.category_id = pc.category_id')
+          .andWhere('c.slug IN (:...cslugs)', { cslugs: categorySlugs });
       }
     }
 
     if ((tagIds && tagIds.length) || (tagSlugs && tagSlugs.length)) {
       countQb.innerJoin(PostTag, 'pt', 'pt.post_id = post.post_id');
+
       if (tagIds && tagIds.length) countQb.andWhere('pt.tag_id IN (:...tids)', { tids: tagIds });
+
       if (tagSlugs && tagSlugs.length) {
         countQb.innerJoin(Tag, 't', 't.tag_id = pt.tag_id').andWhere('t.slug IN (:...tslugs)', {
           tslugs: tagSlugs,
         });
       }
     }
-    
+
     const total = await countQb.getCount();
     const results = await qb
       .skip((page - 1) * limit)
       .take(limit)
       .getRawAndEntities();
-    
+
     // Mapear los resultados para incluir los conteos
-    const data = results.entities.map((post, index) => ({
-      ...post,
-      commentCount: parseInt(results.raw[index].commentCount) || 0,
-      likeCount: parseInt(results.raw[index].likeCount) || 0,
-    }));
-    
+    const data = results.entities.map((post, index) => {
+      const rawRow = results.raw[index] as Record<string, unknown>;
+      const commentCount = parseInt(String(rawRow.commentCount)) || 0;
+      const likeCount = parseInt(String(rawRow.likeCount)) || 0;
+      return { ...post, commentCount, likeCount };
+    });
+
     return { data, meta: this.buildMeta(page, limit, total) };
   }
 
@@ -328,56 +345,60 @@ export class PostsService {
     qb.where('post.slug = :slug', { slug });
 
     const result = await qb.getRawAndEntities();
-    
+
     if (!result.entities.length) {
       throw new NotFoundException('Post no encontrado');
     }
 
     const post = result.entities[0];
-    const raw = result.raw[0];
-    
-    return {
-      ...post,
-      commentCount: parseInt(raw.commentCount) || 0,
-      likeCount: parseInt(raw.likeCount) || 0,
-    } as Post;
+    const rawRow = result.raw[0] as Record<string, unknown>;
+    const commentCount = parseInt(String(rawRow.commentCount)) || 0;
+    const likeCount = parseInt(String(rawRow.likeCount)) || 0;
+
+    return { ...post, commentCount, likeCount } as Post;
   }
 
   async listMine(authorUserId: string, params: ListPostsDto): Promise<Paginated<Post>> {
     const { page, limit, q, status, visibility, sort } = params;
     const qb = this.postRepo.createQueryBuilder('post');
-    
+
     // Agregar conteos de comentarios y likes
     this.addCountsToQuery(qb);
-    
+
     qb.where('post.author_user_id = :uid', { uid: authorUserId });
 
     if (q) qb.andWhere('(post.title ILIKE :q OR post.body ILIKE :q)', { q: `%${q}%` });
+
     if (status) qb.andWhere('post.status = :status', { status });
+
     if (visibility) qb.andWhere('post.visibility = :visibility', { visibility });
 
     this.applyPostSort(qb, sort ?? 'published_at_desc');
-    
+
     // Para el conteo total, usamos una consulta separada
     const countQb = this.postRepo.createQueryBuilder('post');
     countQb.where('post.author_user_id = :uid', { uid: authorUserId });
+
     if (q) countQb.andWhere('(post.title ILIKE :q OR post.body ILIKE :q)', { q: `%${q}%` });
+
     if (status) countQb.andWhere('post.status = :status', { status });
+
     if (visibility) countQb.andWhere('post.visibility = :visibility', { visibility });
-    
+
     const total = await countQb.getCount();
     const results = await qb
       .skip((page - 1) * limit)
       .take(limit)
       .getRawAndEntities();
-    
+
     // Mapear los resultados para incluir los conteos
-    const data = results.entities.map((post, index) => ({
-      ...post,
-      commentCount: parseInt(results.raw[index].commentCount) || 0,
-      likeCount: parseInt(results.raw[index].likeCount) || 0,
-    }));
-    
+    const data = results.entities.map((post, index) => {
+      const rawRow = results.raw[index] as Record<string, unknown>;
+      const commentCount = parseInt(String(rawRow.commentCount)) || 0;
+      const likeCount = parseInt(String(rawRow.likeCount)) || 0;
+      return { ...post, commentCount, likeCount };
+    });
+
     return { data, meta: this.buildMeta(page, limit, total) };
   }
 }

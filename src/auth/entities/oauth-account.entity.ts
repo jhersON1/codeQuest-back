@@ -38,4 +38,3 @@ export class OAuthAccount {
   @UpdateDateColumn({ name: 'updated_at', type: 'timestamptz' })
   updated_at!: Date;
 }
-

@@ -37,4 +37,3 @@ export class UsersController {
     return this.service.delete(id);
   }
 }
-

@@ -18,11 +18,13 @@ export class ListBookmarksDto {
   @Max(50)
   limit!: number;
 
-  @ApiPropertyOptional({ example: 'uuid-1234', description: 'Filtrar por ID de usuario' })
+  @ApiPropertyOptional({ example: 42, description: 'Filtrar por ID de usuario' })
+  @Type(() => Number)
   @IsOptional()
   @ValidateIf((dto) => (dto as ListBookmarksDto).sessionId === undefined)
-  @IsString()
-  userId?: string;
+  @IsInt()
+  @Min(1)
+  userId?: number;
 
   @ApiPropertyOptional({ example: 'anon-abc123', description: 'Filtrar por ID de sesión anónima' })
   @IsOptional()
@@ -35,3 +37,4 @@ export class ListBookmarksDto {
   @IsOptional()
   sort?: BookmarkSort;
 }
+

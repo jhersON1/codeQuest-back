@@ -48,6 +48,6 @@ export class BookmarksController {
   @Get('me')
   @Auth()
   listMine(@Query() query: ListBookmarksDto, @GetUser() user: User) {
-    return this.service.listBookmarks({ ...query, userId: user.user_id } as any);
+    return this.service.listBookmarks({ ...query, userId: user.user_id });
   }
 }

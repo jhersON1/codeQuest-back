@@ -1,5 +1,5 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
-import { IsEnum, IsInt, IsOptional, Max, Min } from 'class-validator';
+import { IsEnum, IsInt, IsOptional, IsUUID, Max, Min } from 'class-validator';
 import { Type } from 'class-transformer';
 import { ReactionEntityType, ReactionType } from '../../entities/reaction/reaction.entity';
 
@@ -36,12 +36,10 @@ export class ListReactionsDto {
   @IsEnum(ReactionType)
   type?: ReactionType;
 
-  @ApiPropertyOptional({ example: 10 })
-  @Type(() => Number)
+  @ApiPropertyOptional({ example: 'uuid-1234' })
   @IsOptional()
-  @IsInt()
-  @Min(1)
-  userId?: number;
+  @IsUUID()
+  userId?: string;
 
   @ApiPropertyOptional({ example: 'created_at_desc', description: 'Orden' })
   @IsOptional()

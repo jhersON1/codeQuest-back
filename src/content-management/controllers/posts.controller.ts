@@ -47,17 +47,13 @@ export class PostsController {
 
   @Patch(':id')
   @Auth()
-  update(
-    @Param('id', ParseIntPipe) id: number,
-    @Body() dto: UpdatePostDto,
-    @GetUser() user: User,
-  ) {
+  update(@Param('id', ParseIntPipe) id: number, @Body() dto: UpdatePostDto, @GetUser() user: User) {
     return this.postsService.update(id, dto, user);
   }
 
   @Delete(':id')
   @Auth()
-  delete(@Param('id', ParseIntPipe) id: number, @GetUser() user: User) {
-    return this.postsService.delete(id, user);
+  delete(@Param('id', ParseIntPipe) id: number) {
+    return this.postsService.delete(id);
   }
 }

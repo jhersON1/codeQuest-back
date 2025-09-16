@@ -1,5 +1,5 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
-import { IsInt, IsOptional, IsString, MaxLength, Min, ValidateIf } from 'class-validator';
+import { IsInt, IsOptional, IsString, IsUUID, MaxLength, Min, ValidateIf } from 'class-validator';
 import { Type } from 'class-transformer';
 
 export class DeleteBookmarkDto {
@@ -9,13 +9,14 @@ export class DeleteBookmarkDto {
   @Min(1)
   postId!: number;
 
-  @ApiPropertyOptional({ example: 42, description: 'ID de usuario (uno requerido junto a postId)' })
-  @Type(() => Number)
+  @ApiPropertyOptional({
+    example: 'uuid-1234',
+    description: 'ID de usuario (uno requerido junto a postId)',
+  })
   @IsOptional()
   @ValidateIf((dto) => (dto as DeleteBookmarkDto).sessionId === undefined)
-  @IsInt()
-  @Min(1)
-  userId?: number;
+  @IsUUID()
+  userId?: string;
 
   @ApiPropertyOptional({
     example: 'anon-abc123',

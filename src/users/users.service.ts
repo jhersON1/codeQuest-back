@@ -42,6 +42,7 @@ export class UsersService {
     const qb = this.userRepo.createQueryBuilder('user');
 
     if (q) qb.andWhere('(user.username ILIKE :q OR user.email ILIKE :q)', { q: `%${q}%` });
+
     if (role) qb.andWhere('user.role = :role', { role });
 
     this.applySort(qb, sort ?? 'created_at_desc');
@@ -55,13 +56,17 @@ export class UsersService {
 
   async findById(id: string): Promise<User> {
     const user = await this.userRepo.findOne({ where: { user_id: id } });
+
     if (!user) throw new NotFoundException('Usuario no encontrado');
+
     return user;
   }
 
   async findByUsername(username: string): Promise<User> {
     const user = await this.userRepo.findOne({ where: { username } });
+
     if (!user) throw new NotFoundException('Usuario no encontrado');
+
     return user;
   }
 
@@ -69,8 +74,11 @@ export class UsersService {
     const user = await this.findById(id);
 
     if (dto.username !== undefined) user.username = dto.username;
-    if (dto.email !== undefined) user.email = dto.email as any; // nullable allowed
+
+    if (dto.email !== undefined) user.email = dto.email; // nullable allowed
+
     if (dto.role !== undefined) user.role = dto.role;
+
     if (dto.avatar_media_id !== undefined) user.avatar_media_id = dto.avatar_media_id ?? null;
 
     if (dto.password !== undefined) {
@@ -79,15 +87,20 @@ export class UsersService {
 
     try {
       return await this.userRepo.save(user);
-    } catch (e: any) {
-      if (e?.code === '23505') throw new ConflictException('Duplicate key');
+    } catch (e: unknown) {
+      const code =
+        typeof e === 'object' && e && 'code' in e ? (e as { code?: unknown }).code : undefined;
+
+      if (typeof code === 'string' && code === '23505')
+        throw new ConflictException('Duplicate key');
+
       throw e;
     }
   }
 
   async delete(id: string): Promise<void> {
     const res = await this.userRepo.delete({ user_id: id });
+
     if (!res.affected) throw new NotFoundException('Usuario no encontrado');
   }
 }
-

@@ -62,12 +62,12 @@ export class ReactionsViewsController {
   @Get('me/reactions')
   @Auth()
   listMyReactions(@Query() query: ListReactionsDto, @GetUser() user: User) {
-    return this.service.listReactions({ ...query, userId: user.user_id } as any);
+    return this.service.listReactions({ ...query, userId: user.user_id });
   }
 
   @Get('me/views')
   @Auth()
   listMyViews(@Query() query: ListViewsDto, @GetUser() user: User) {
-    return this.service.listViews({ ...query, viewerUserId: user.user_id } as any);
+    return this.service.listViews({ ...query, viewerUserId: user.user_id });
   }
 }

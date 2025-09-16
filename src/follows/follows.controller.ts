@@ -25,7 +25,7 @@ export class FollowsController {
   @HttpPost('')
   @Auth()
   create(@Body() dto: CreateFollowDto, @GetUser() user: User) {
-    return this.service.createFollowForUser(user.user_id, dto.entityType as any, dto.entityId);
+    return this.service.createFollowForUser(user.user_id, dto.entityType, dto.entityId);
   }
 
   @Get('')
@@ -42,12 +42,12 @@ export class FollowsController {
   @Delete('')
   @Auth()
   deleteByComposite(@Body() dto: DeleteFollowDto, @GetUser() user: User) {
-    return this.service.removeByCompositeForUser(user.user_id, dto.entityType as any, dto.entityId);
+    return this.service.removeByCompositeForUser(user.user_id, dto.entityType, dto.entityId);
   }
 
   @Get('me')
   @Auth()
   listMine(@Query() query: ListFollowsDto, @GetUser() user: User) {
-    return this.service.listFollows({ ...query, followerUserId: user.user_id } as any);
+    return this.service.listFollows({ ...query, followerUserId: user.user_id });
   }
 }

@@ -6,7 +6,10 @@ import { ConfigService } from '@nestjs/config';
 
 @Injectable()
 export class DiscordStrategy extends PassportStrategy(Strategy, 'discord') {
-  constructor(private readonly authService: AuthService, private readonly config: ConfigService) {
+  constructor(
+    private readonly authService: AuthService,
+    private readonly config: ConfigService,
+  ) {
     super({
       clientID: config.get('DISCORD_CLIENT_ID')!,
       clientSecret: config.get('DISCORD_CLIENT_SECRET')!,

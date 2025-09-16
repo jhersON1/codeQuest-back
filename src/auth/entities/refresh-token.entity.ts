@@ -32,4 +32,3 @@ export class RefreshToken {
   @UpdateDateColumn({ name: 'updated_at', type: 'timestamptz' })
   updated_at!: Date;
 }
-

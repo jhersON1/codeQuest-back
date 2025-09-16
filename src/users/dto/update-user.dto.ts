@@ -1,4 +1,12 @@
-import { IsEmail, IsEnum, IsInt, IsOptional, IsString, MaxLength, MinLength } from 'class-validator';
+import {
+  IsEmail,
+  IsEnum,
+  IsInt,
+  IsOptional,
+  IsString,
+  MaxLength,
+  MinLength,
+} from 'class-validator';
 import { UserRoles } from '../../auth/enums/user-roles.enum';
 
 export class UpdateUserDto {
@@ -26,4 +34,3 @@ export class UpdateUserDto {
   @IsInt()
   avatar_media_id?: number;
 }
-

@@ -1,6 +1,6 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { Type } from 'class-transformer';
-import { IsEnum, IsInt, IsOptional, Min, Max } from 'class-validator';
+import { IsEnum, IsInt, IsOptional, IsUUID, Min, Max } from 'class-validator';
 import { FollowEntityType } from '../../entities/follow/follow.entity';
 
 export type FollowSort = 'created_at_desc' | 'created_at_asc';
@@ -19,11 +19,9 @@ export class ListFollowsDto {
   @Max(50)
   limit!: number;
 
-  @ApiProperty({ example: 42, description: 'ID del usuario cuyos follows se listan', minimum: 1 })
-  @Type(() => Number)
-  @IsInt()
-  @Min(1)
-  followerUserId!: number;
+  @ApiProperty({ example: 'uuid-1234', description: 'ID del usuario cuyos follows se listan' })
+  @IsUUID()
+  followerUserId!: string;
 
   @ApiPropertyOptional({
     example: 'category',

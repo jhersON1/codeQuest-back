@@ -53,7 +53,9 @@ export class AuthService {
     // Simple parser for s/m/h/d (e.g., 15m, 1h, 7d)
     const match = /^([0-9]+)([smhd])$/.exec(expiresIn);
     const now = new Date();
+
     if (!match) return new Date(now.getTime() + 1000 * 60 * 60 * 24 * 30); // default 30d
+
     const val = parseInt(match[1], 10);
     const unit = match[2];
     const mult = unit === 's' ? 1 : unit === 'm' ? 60 : unit === 'h' ? 3600 : 86400;
@@ -87,7 +89,7 @@ export class AuthService {
     return token;
   }
 
-  async issueAccessToken(userId: string) {
+  issueAccessToken(userId: string): string {
     return this.signAccessToken({ user_id: userId });
   }
 
@@ -106,14 +108,20 @@ export class AuthService {
 
       await this.userRepository.save(user);
 
-      const accessToken = await this.issueAccessToken(user.user_id);
+      const accessToken = this.issueAccessToken(user.user_id);
       const refreshToken = await this.issueRefreshToken(user.user_id);
       return { token: accessToken, accessToken, refreshToken };
-    } catch (error) {
+    } catch (error: unknown) {
       // Postgres unique violation
-      if (error?.code === '23505') {
+      const code =
+        typeof error === 'object' && error && 'code' in error
+          ? (error as { code?: unknown }).code
+          : undefined;
+
+      if (typeof code === 'string' && code === '23505') {
         throw new ConflictException('Duplicate key');
       }
+
       throw new InternalServerErrorException('An error has ocurred');
     }
   }
@@ -131,7 +139,7 @@ export class AuthService {
     if (!(await argon2.verify(user.password as string, password)))
       throw new UnauthorizedException('Invalid credentials');
 
-    const accessToken = await this.issueAccessToken(user.user_id);
+    const accessToken = this.issueAccessToken(user.user_id);
     const refreshToken = await this.issueRefreshToken(user.user_id);
     return { token: accessToken, accessToken, refreshToken };
   }
@@ -144,40 +152,52 @@ export class AuthService {
     refreshToken?: string | null;
     expiresAt?: Date | null;
   }): Promise<User> {
-    const { provider, providerUserId, suggestedUsername, accessToken, refreshToken, expiresAt } = params;
+    const { provider, providerUserId, suggestedUsername, accessToken, refreshToken, expiresAt } =
+      params;
 
     const existing = await this.oauthAccountRepo.findOne({
       where: { provider, provider_user_id: providerUserId },
     });
+
     if (existing) {
       // Update tokens if changed
       let needsUpdate = false;
+
       if (existing.access_token !== (accessToken ?? null)) {
         existing.access_token = accessToken ?? null;
         needsUpdate = true;
       }
+
       if (existing.refresh_token !== (refreshToken ?? null)) {
         existing.refresh_token = refreshToken ?? null;
         needsUpdate = true;
       }
+
       if (existing.expires_at?.getTime() !== (expiresAt ?? null)?.getTime()) {
         existing.expires_at = expiresAt ?? null;
         needsUpdate = true;
       }
+
       if (needsUpdate) await this.oauthAccountRepo.save(existing);
+
       const user = await this.userRepository.findOneBy({ user_id: existing.user_id });
+
       if (!user) throw new InternalServerErrorException('OAuth linked user not found');
+
       return user;
     }
 
     // Create new user with unique username disambiguation
-    const base = suggestedUsername && suggestedUsername.trim().length > 0 ? suggestedUsername.trim() : 'user';
+    const base =
+      suggestedUsername && suggestedUsername.trim().length > 0 ? suggestedUsername.trim() : 'user';
     let username = base;
     let suffix = 0;
+
     while (await this.userRepository.findOne({ where: { username } })) {
       suffix++;
       username = `${base}${suffix}`;
     }
+
     const user = this.userRepository.create({ username });
     await this.userRepository.save(user);
 
@@ -196,6 +216,7 @@ export class AuthService {
   async rotateRefreshToken(userId: string, rawToken: string) {
     // Verify JWT first
     let payload: JwtRefreshPayload;
+
     try {
       payload = this.jwtService.verify<JwtRefreshPayload>(rawToken, {
         secret: this.refreshTokenSecret(),
@@ -203,19 +224,27 @@ export class AuthService {
     } catch {
       throw new UnauthorizedException('Invalid refresh token');
     }
+
     if (payload.user_id !== userId) throw new UnauthorizedException('Invalid refresh token');
 
-    const record = await this.refreshTokenRepo.findOne({ where: { id: payload.jti, user_id: userId } });
+    const record = await this.refreshTokenRepo.findOne({
+      where: { id: payload.jti, user_id: userId },
+    });
+
     if (!record || record.revoked_at) throw new UnauthorizedException('Refresh token revoked');
-    if (record.expires_at.getTime() < Date.now()) throw new UnauthorizedException('Refresh token expired');
+
+    if (record.expires_at.getTime() < Date.now())
+      throw new UnauthorizedException('Refresh token expired');
+
     const valid = await argon2.verify(record.token_hash, rawToken);
+
     if (!valid) throw new UnauthorizedException('Invalid refresh token');
 
     // Rotate: revoke current and issue new
     record.revoked_at = new Date();
     await this.refreshTokenRepo.save(record);
 
-    const accessToken = await this.issueAccessToken(userId);
+    const accessToken = this.issueAccessToken(userId);
     const refreshToken = await this.issueRefreshToken(userId);
     return { token: accessToken, accessToken, refreshToken };
   }
@@ -225,14 +254,21 @@ export class AuthService {
       const payload = this.jwtService.verify<JwtRefreshPayload>(rawToken, {
         secret: this.refreshTokenSecret(),
       });
+
       if (payload.user_id !== userId) throw new UnauthorizedException('Invalid refresh token');
-      const record = await this.refreshTokenRepo.findOne({ where: { id: payload.jti, user_id: userId } });
+
+      const record = await this.refreshTokenRepo.findOne({
+        where: { id: payload.jti, user_id: userId },
+      });
+
       if (!record) return { revoked: 0 };
+
       if (!record.revoked_at) {
         record.revoked_at = new Date();
         await this.refreshTokenRepo.save(record);
         return { revoked: 1 };
       }
+
       return { revoked: 0 };
     } catch {
       throw new UnauthorizedException('Invalid refresh token');
@@ -242,6 +278,7 @@ export class AuthService {
   async revokeAllRefreshTokens(userId: string) {
     const active = await this.refreshTokenRepo.find({ where: { user_id: userId } });
     let count = 0;
+
     for (const r of active) {
       if (!r.revoked_at) {
         r.revoked_at = new Date();
@@ -249,6 +286,7 @@ export class AuthService {
         count++;
       }
     }
+
     return { revoked: count };
   }
 

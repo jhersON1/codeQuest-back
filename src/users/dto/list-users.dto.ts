@@ -25,4 +25,3 @@ export class ListUsersDto {
   @IsString()
   sort?: UsersSort;
 }
-

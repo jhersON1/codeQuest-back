@@ -53,6 +53,7 @@ export class CommentsService {
 
     const isOwner = comment.user_id === user.user_id;
     const isAdmin = user.role === UserRoles.ADMIN;
+
     if (!isOwner && !isAdmin) throw new ForbiddenException('No autorizado');
 
     let edited = false;
@@ -80,6 +81,7 @@ export class CommentsService {
 
     const isOwner = comment.user_id === user.user_id;
     const isAdmin = user.role === UserRoles.ADMIN;
+
     if (!isOwner && !isAdmin) throw new ForbiddenException('No autorizado');
 
     comment.deleted_at = new Date();
@@ -122,8 +124,7 @@ export class CommentsService {
   async listMine(userId: string, params: ListCommentsDto): Promise<Paginated<Comment>> {
     const { page, limit, postId, parentCommentId, status, sort } = params;
     const qb = this.commentRepo.createQueryBuilder('comment');
-    qb.where('comment.deleted_at IS NULL')
-      .andWhere('comment.user_id = :uid', { uid: userId });
+    qb.where('comment.deleted_at IS NULL').andWhere('comment.user_id = :uid', { uid: userId });
 
     if (postId !== undefined) qb.andWhere('comment.post_id = :postId', { postId });
 

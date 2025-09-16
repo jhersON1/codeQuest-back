@@ -1,4 +1,4 @@
-import { Controller, Post, Body, Get, HttpCode, UseGuards, Delete } from '@nestjs/common';
+import { Controller, Post, Body, Get, HttpCode, UseGuards } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { LoginUserDto } from './dto/login-user.dto';
 import { RegisterUserDto } from './dto/register-user.dto';
@@ -32,7 +32,7 @@ export class AuthController {
   @Get('discord/callback')
   @UseGuards(AuthGuard('discord'))
   async discordCallback(@GetUser() user: User) {
-    const accessToken = await this.authService.issueAccessToken(user.user_id);
+    const accessToken = this.authService.issueAccessToken(user.user_id);
     const refreshToken = await this.authService.issueRefreshToken(user.user_id);
     return { token: accessToken, accessToken, refreshToken };
   }
@@ -42,6 +42,7 @@ export class AuthController {
   @UseGuards(AuthGuard('jwt-refresh'))
   refresh(@GetUser() user: User, @GetToken() token: string | null) {
     if (!token) return { message: 'Missing refresh token' };
+
     return this.authService.rotateRefreshToken(user.user_id, token);
   }
 
@@ -50,6 +51,7 @@ export class AuthController {
   @UseGuards(AuthGuard('jwt-refresh'))
   logout(@GetUser() user: User, @GetToken() token: string | null) {
     if (!token) return { revoked: 0 };
+
     return this.authService.revokeRefreshToken(user.user_id, token);
   }
 
