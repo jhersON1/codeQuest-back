@@ -14,6 +14,9 @@ import { CommentsService } from './comments.service';
 import { CreateCommentDto } from './dto/comment/create-comment.dto';
 import { ListCommentsDto } from './dto/comment/list-comments.dto';
 import { UpdateCommentDto } from './dto/comment/update-comment.dto';
+import { Auth } from '../auth/decorators/auth.decorator';
+import { GetUser } from '../auth/decorators/get-user.decorator';
+import { User } from '../auth/entities/user.entity';
 
 @ApiTags('comments')
 @Controller('comments')
@@ -21,8 +24,9 @@ export class CommentsController {
   constructor(private readonly commentsService: CommentsService) {}
 
   @HttpPost('')
-  create(@Body() dto: CreateCommentDto) {
-    return this.commentsService.create(dto);
+  @Auth()
+  create(@Body() dto: CreateCommentDto, @GetUser() user: User) {
+    return this.commentsService.create(dto, user);
   }
 
   @Get('')
@@ -31,12 +35,24 @@ export class CommentsController {
   }
 
   @Patch(':id')
-  update(@Param('id', ParseIntPipe) id: number, @Body() dto: UpdateCommentDto) {
-    return this.commentsService.update(id, dto);
+  @Auth()
+  update(
+    @Param('id', ParseIntPipe) id: number,
+    @Body() dto: UpdateCommentDto,
+    @GetUser() user: User,
+  ) {
+    return this.commentsService.update(id, dto, user);
   }
 
   @Delete(':id')
-  delete(@Param('id', ParseIntPipe) id: number) {
-    return this.commentsService.softDelete(id);
+  @Auth()
+  delete(@Param('id', ParseIntPipe) id: number, @GetUser() user: User) {
+    return this.commentsService.softDelete(id, user);
+  }
+
+  @Get('me/mine')
+  @Auth()
+  listMine(@Query() query: ListCommentsDto, @GetUser() user: User) {
+    return this.commentsService.listMine(user.user_id, query);
   }
 }

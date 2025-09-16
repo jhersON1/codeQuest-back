@@ -24,6 +24,7 @@ export enum PostVisibility {
 @Entity({ name: 'posts' })
 @Index(['status'])
 @Index(['published_at'])
+@Index(['author_user_id'])
 export class Post {
   @PrimaryGeneratedColumn({ name: 'post_id', type: 'integer' })
   post_id!: number;
@@ -60,6 +61,9 @@ export class Post {
 
   @Column({ name: 'cover_image_id', type: 'integer', nullable: true })
   cover_image_id!: number | null;
+
+  @Column({ name: 'author_user_id', type: 'uuid' })
+  author_user_id!: string;
 
   @CreateDateColumn({ name: 'created_at', type: 'timestamptz' })
   created_at!: Date;

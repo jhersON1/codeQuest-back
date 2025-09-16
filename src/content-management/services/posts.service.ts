@@ -1,4 +1,4 @@
-import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
+import { BadRequestException, ForbiddenException, Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, SelectQueryBuilder } from 'typeorm';
 import { Post, PostStatus, PostVisibility } from '../entities/post/post.entity';
@@ -9,6 +9,8 @@ import { Tag } from '../entities/tag/tag.entity';
 import { CreatePostDto } from '../dto/post/create-post.dto';
 import { UpdatePostDto } from '../dto/post/update-post.dto';
 import { ListPostsDto, PostSort } from '../dto/post/list-posts.dto';
+import { User } from '../../auth/entities/user.entity';
+import { UserRoles } from '../../auth/enums/user-roles.enum';
 import { CategoriesService } from './categories.service';
 import { TagsService } from './tags.service';
 import { SlugService } from './slug.service';
@@ -57,7 +59,7 @@ export class PostsService {
     }
   }
 
-  async create(dto: CreatePostDto): Promise<Post> {
+  async create(dto: CreatePostDto, authorUserId: string): Promise<Post> {
     const status = dto.status ?? PostStatus.Draft;
     const publishedAt = dto.publishedAt ? new Date(dto.publishedAt) : null;
 
@@ -75,6 +77,7 @@ export class PostsService {
       published_at: publishedAt,
       visibility: dto.visibility ?? PostVisibility.Public,
       cover_image_id: dto.coverImageId ?? null,
+      author_user_id: authorUserId,
     });
     const saved = await this.postRepo.save(post);
 
@@ -100,10 +103,14 @@ export class PostsService {
     return saved;
   }
 
-  async update(id: number, dto: UpdatePostDto): Promise<Post> {
+  async update(id: number, dto: UpdatePostDto, currentUser: User): Promise<Post> {
     const post = await this.postRepo.findOne({ where: { post_id: id } });
 
     if (!post) throw new NotFoundException('Post no encontrado');
+
+    const isOwner = post.author_user_id === currentUser.user_id;
+    const isAdmin = currentUser.role === UserRoles.ADMIN;
+    if (!isOwner && !isAdmin) throw new ForbiddenException('No autorizado');
 
     if (dto.title && dto.title !== post.title) {
       post.title = dto.title;
@@ -174,7 +181,7 @@ export class PostsService {
     return updated;
   }
 
-  async delete(id: number): Promise<void> {
+  async delete(id: number, currentUser: User): Promise<void> {
     const result = await this.postRepo.delete({ post_id: id });
 
     if (!result.affected) throw new NotFoundException('Post no encontrado');
@@ -244,5 +251,23 @@ export class PostsService {
     if (!post) throw new NotFoundException('Post no encontrado');
 
     return post;
+  }
+
+  async listMine(authorUserId: string, params: ListPostsDto): Promise<Paginated<Post>> {
+    const { page, limit, q, status, visibility, sort } = params;
+    const qb = this.postRepo.createQueryBuilder('post');
+    qb.where('post.author_user_id = :uid', { uid: authorUserId });
+
+    if (q) qb.andWhere('(post.title ILIKE :q OR post.body ILIKE :q)', { q: `%${q}%` });
+    if (status) qb.andWhere('post.status = :status', { status });
+    if (visibility) qb.andWhere('post.visibility = :visibility', { visibility });
+
+    this.applyPostSort(qb, sort ?? 'published_at_desc');
+    const total = await qb.getCount();
+    const data = await qb
+      .skip((page - 1) * limit)
+      .take(limit)
+      .getMany();
+    return { data, meta: this.buildMeta(page, limit, total) };
   }
 }

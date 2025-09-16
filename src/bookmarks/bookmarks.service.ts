@@ -42,14 +42,14 @@ export class BookmarksService {
 
     if (hasUser) {
       const existing = await this.repo.findOne({
-        where: { user_id: dto.userId!, post_id: dto.postId },
+        where: { user_id: (dto.userId! as any), post_id: dto.postId },
       });
 
       if (existing) return existing;
 
       const toCreate = this.repo.create({
         post_id: dto.postId,
-        user_id: dto.userId!,
+        user_id: (dto.userId! as any),
         session_id: null,
       });
       return this.repo.save(toCreate);
@@ -63,9 +63,16 @@ export class BookmarksService {
 
     const toCreate = this.repo.create({
       post_id: dto.postId,
-      user_id: null,
+      user_id: undefined as any,
       session_id: dto.sessionId!,
     });
+    return this.repo.save(toCreate);
+  }
+
+  async createForUser(userId: string, postId: number): Promise<Bookmark> {
+    const existing = await this.repo.findOne({ where: { user_id: userId as any, post_id: postId } });
+    if (existing) return existing;
+    const toCreate = this.repo.create({ post_id: postId, user_id: userId as any, session_id: null });
     return this.repo.save(toCreate);
   }
 
@@ -99,6 +106,13 @@ export class BookmarksService {
     if (!result.affected) throw new NotFoundException('Bookmark no encontrado');
   }
 
+  async deleteByIdForUser(bookmarkId: number, userId: string): Promise<void> {
+    const entity = await this.repo.findOne({ where: { bookmark_id: bookmarkId } });
+    if (!entity) throw new NotFoundException('Bookmark no encontrado');
+    if (entity.user_id !== (userId as any)) throw new BadRequestException('No autorizado');
+    await this.repo.delete({ bookmark_id: bookmarkId });
+  }
+
   async deleteByComposite(dto: DeleteBookmarkDto): Promise<void> {
     const hasUser = dto.userId !== undefined && dto.userId !== null;
     const hasSession =
@@ -109,11 +123,16 @@ export class BookmarksService {
     }
 
     const where = hasUser
-      ? { post_id: dto.postId, user_id: dto.userId! }
-      : { post_id: dto.postId, session_id: dto.sessionId! };
+      ? ({ post_id: dto.postId, user_id: (dto.userId! as any) } as any)
+      : ({ post_id: dto.postId, session_id: dto.sessionId! } as any);
 
     const result = await this.repo.delete(where);
 
     if (!result.affected) throw new NotFoundException('Bookmark no encontrado');
+  }
+
+  async deleteByCompositeForUser(userId: string, postId: number): Promise<void> {
+    const res = await this.repo.delete({ user_id: userId as any, post_id: postId });
+    if (!res.affected) throw new NotFoundException('Bookmark no encontrado');
   }
 }

@@ -1,4 +1,4 @@
-import { Column, CreateDateColumn, Entity, Index, PrimaryGeneratedColumn } from 'typeorm';
+import { Column, CreateDateColumn, Entity, Index, PrimaryGeneratedColumn, Unique } from 'typeorm';
 
 export enum FollowEntityType {
   USER = 'user',
@@ -10,12 +10,13 @@ export enum FollowEntityType {
 @Index(['follower_user_id'])
 @Index(['entity_type', 'entity_id'])
 @Index(['created_at'])
+@Unique('uq_follow_user_entity', ['follower_user_id', 'entity_type', 'entity_id'])
 export class Follow {
   @PrimaryGeneratedColumn({ name: 'follow_id', type: 'integer' })
   follow_id!: number;
 
-  @Column({ name: 'follower_user_id', type: 'integer', nullable: true })
-  follower_user_id!: number | null;
+  @Column({ name: 'follower_user_id', type: 'uuid' })
+  follower_user_id!: string;
 
   @Column({
     name: 'entity_type',

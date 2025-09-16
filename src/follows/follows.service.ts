@@ -1,4 +1,4 @@
-import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
+import { BadRequestException, ForbiddenException, Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, SelectQueryBuilder } from 'typeorm';
 import { Follow } from './entities/follow/follow.entity';
@@ -40,7 +40,7 @@ export class FollowsService {
 
     const existing = await this.repo.findOne({
       where: {
-        follower_user_id: followerUserId,
+        follower_user_id: (followerUserId as any),
         entity_type: entityType,
         entity_id: entityId,
       },
@@ -49,7 +49,24 @@ export class FollowsService {
     if (existing) return existing;
 
     const toCreate = this.repo.create({
-      follower_user_id: followerUserId,
+      follower_user_id: followerUserId as any,
+      entity_type: entityType,
+      entity_id: entityId,
+    });
+    return this.repo.save(toCreate);
+  }
+
+  async createFollowForUser(userId: string, entityType: any, entityId: number): Promise<Follow> {
+    const existing = await this.repo.findOne({
+      where: {
+        follower_user_id: userId as any,
+        entity_type: entityType,
+        entity_id: entityId,
+      },
+    });
+    if (existing) return existing;
+    const toCreate = this.repo.create({
+      follower_user_id: userId as any,
       entity_type: entityType,
       entity_id: entityId,
     });
@@ -84,24 +101,21 @@ export class FollowsService {
     return { data, meta: this.buildMeta(page, limit, total) };
   }
 
-  async removeById(id: number): Promise<{ affected: number }> {
+  async removeById(id: number, userId: string): Promise<{ affected: number }> {
+    const entity = await this.repo.findOne({ where: { follow_id: id } });
+    if (!entity) throw new NotFoundException('Follow no encontrado');
+    if (entity.follower_user_id !== (userId as any)) throw new ForbiddenException('No autorizado');
     const result = await this.repo.delete({ follow_id: id });
-
-    if (!result.affected) throw new NotFoundException('Follow no encontrado');
-
-    return { affected: result.affected };
+    return { affected: result.affected ?? 0 };
   }
 
-  async removeByComposite(dto: DeleteFollowDto): Promise<{ affected: number }> {
-    const { followerUserId, entityType, entityId } = dto;
+  async removeByCompositeForUser(userId: string, entityType: any, entityId: number): Promise<{ affected: number }> {
     const result = await this.repo.delete({
-      follower_user_id: followerUserId,
+      follower_user_id: userId as any,
       entity_type: entityType,
       entity_id: entityId,
     });
-
     if (!result.affected) throw new NotFoundException('Follow no encontrado');
-
-    return { affected: result.affected };
+    return { affected: result.affected ?? 0 };
   }
 }

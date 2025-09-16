@@ -1,5 +1,5 @@
-import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
-import { IsEnum, IsInt, IsOptional, Min } from 'class-validator';
+import { ApiProperty } from '@nestjs/swagger';
+import { IsEnum, IsInt, Min } from 'class-validator';
 import { Type } from 'class-transformer';
 import { ReactionEntityType, ReactionType } from '../../entities/reaction/reaction.entity';
 
@@ -17,11 +17,4 @@ export class CreateReactionDto {
   @ApiProperty({ enum: ReactionType, example: ReactionType.Like })
   @IsEnum(ReactionType)
   type!: ReactionType;
-
-  @ApiPropertyOptional({ example: 10, description: 'ID de usuario (opcional)' })
-  @Type(() => Number)
-  @IsOptional()
-  @IsInt()
-  @Min(1)
-  userId?: number;
 }

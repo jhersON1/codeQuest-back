@@ -11,6 +11,7 @@ export enum CommentStatus {
 @Index(['parent_comment_id'])
 @Index(['status'])
 @Index(['created_at'])
+@Index(['user_id'])
 export class Comment {
   @PrimaryGeneratedColumn({ name: 'comment_id', type: 'integer' })
   comment_id!: number;
@@ -18,8 +19,8 @@ export class Comment {
   @Column({ name: 'post_id', type: 'integer' })
   post_id!: number;
 
-  @Column({ name: 'user_id', type: 'integer', nullable: true })
-  user_id!: number | null;
+  @Column({ name: 'user_id', type: 'uuid' })
+  user_id!: string;
 
   @Column({ name: 'parent_comment_id', type: 'integer', nullable: true })
   parent_comment_id!: number | null;

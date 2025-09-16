@@ -6,13 +6,16 @@ import { User } from './entities/user.entity';
 import { PassportModule } from '@nestjs/passport';
 import { JwtModule } from '@nestjs/jwt';
 import { ConfigModule, ConfigService } from '@nestjs/config';
-import { JwtStategy } from './strategies/jwt-strategy';
+import { JwtStrategy } from './strategies/jwt-strategy';
 import { DiscordStrategy } from './strategies/discord-oauth-strategy';
+import { JwtRefreshStrategy } from './strategies/jwt-refresh.strategy';
+import { RefreshToken } from './entities/refresh-token.entity';
+import { OAuthAccount } from './entities/oauth-account.entity';
 
 @Module({
   imports: [
     ConfigModule,
-    TypeOrmModule.forFeature([User]),
+    TypeOrmModule.forFeature([User, RefreshToken, OAuthAccount]),
     PassportModule.register({
       defaultStrategy: 'jwt',
     }),
@@ -23,13 +26,14 @@ import { DiscordStrategy } from './strategies/discord-oauth-strategy';
         return {
           secret: configService.get('JWT_SECRET'),
           signOptions: {
-            expiresIn: '1d',
+            // Access token lifetime (override with JWT_ACCESS_EXPIRES_IN)
+            expiresIn: configService.get('JWT_ACCESS_EXPIRES_IN') ?? '15m',
           },
         };
       },
     }),
   ],
   controllers: [AuthController],
-  providers: [AuthService, JwtStategy, DiscordStrategy],
+  providers: [AuthService, JwtStrategy, JwtRefreshStrategy, DiscordStrategy],
 })
 export class AuthModule {}

@@ -1,4 +1,4 @@
-import { Controller, Post, Body, Get, HttpCode, UseGuards } from '@nestjs/common';
+import { Controller, Post, Body, Get, HttpCode, UseGuards, Delete } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { LoginUserDto } from './dto/login-user.dto';
 import { RegisterUserDto } from './dto/register-user.dto';
@@ -6,6 +6,7 @@ import { Auth } from './decorators/auth.decorator';
 import { AuthGuard } from '@nestjs/passport';
 import { GetUser } from './decorators/get-user.decorator';
 import { User } from './entities/user.entity';
+import { GetToken } from './decorators/get-token.decorator';
 
 @Controller('auth')
 export class AuthController {
@@ -30,8 +31,33 @@ export class AuthController {
 
   @Get('discord/callback')
   @UseGuards(AuthGuard('discord'))
-  discordCallback(@GetUser() user: User) {
-    return this.authService.generateJwt({ user_id: user.user_id });
+  async discordCallback(@GetUser() user: User) {
+    const accessToken = await this.authService.issueAccessToken(user.user_id);
+    const refreshToken = await this.authService.issueRefreshToken(user.user_id);
+    return { token: accessToken, accessToken, refreshToken };
+  }
+
+  @HttpCode(200)
+  @Post('refresh')
+  @UseGuards(AuthGuard('jwt-refresh'))
+  refresh(@GetUser() user: User, @GetToken() token: string | null) {
+    if (!token) return { message: 'Missing refresh token' };
+    return this.authService.rotateRefreshToken(user.user_id, token);
+  }
+
+  @HttpCode(200)
+  @Post('logout')
+  @UseGuards(AuthGuard('jwt-refresh'))
+  logout(@GetUser() user: User, @GetToken() token: string | null) {
+    if (!token) return { revoked: 0 };
+    return this.authService.revokeRefreshToken(user.user_id, token);
+  }
+
+  @HttpCode(200)
+  @Post('logout-all')
+  @Auth('admin', 'author', 'subscriber')
+  logoutAll(@GetUser() user: User) {
+    return this.authService.revokeAllRefreshTokens(user.user_id);
   }
 
   @Auth('admin')

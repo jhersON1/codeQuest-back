@@ -1,10 +1,12 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { ForbiddenException, Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { IsNull, Repository, SelectQueryBuilder } from 'typeorm';
 import { Comment, CommentStatus } from './entities/comment/comment.entity';
 import { CreateCommentDto } from './dto/comment/create-comment.dto';
 import { UpdateCommentDto } from './dto/comment/update-comment.dto';
 import { ListCommentsDto, CommentSort } from './dto/comment/list-comments.dto';
+import { User } from '../auth/entities/user.entity';
+import { UserRoles } from '../auth/enums/user-roles.enum';
 
 type Paginated<T> = {
   data: T[];
@@ -31,23 +33,27 @@ export class CommentsService {
     }
   }
 
-  async create(dto: CreateCommentDto): Promise<Comment> {
+  async create(dto: CreateCommentDto, user: User): Promise<Comment> {
     const comment = this.commentRepo.create({
       post_id: dto.postId,
       parent_comment_id: dto.parentCommentId ?? null,
-      user_id: null,
+      user_id: user.user_id,
       body: dto.body,
       status: CommentStatus.Pending,
     });
     return this.commentRepo.save(comment);
   }
 
-  async update(id: number, dto: UpdateCommentDto): Promise<Comment> {
+  async update(id: number, dto: UpdateCommentDto, user: User): Promise<Comment> {
     const comment = await this.commentRepo.findOne({
       where: { comment_id: id, deleted_at: IsNull() },
     });
 
     if (!comment) throw new NotFoundException('Comentario no encontrado');
+
+    const isOwner = comment.user_id === user.user_id;
+    const isAdmin = user.role === UserRoles.ADMIN;
+    if (!isOwner && !isAdmin) throw new ForbiddenException('No autorizado');
 
     let edited = false;
 
@@ -65,12 +71,16 @@ export class CommentsService {
     return this.commentRepo.save(comment);
   }
 
-  async softDelete(id: number): Promise<void> {
+  async softDelete(id: number, user: User): Promise<void> {
     const comment = await this.commentRepo.findOne({
       where: { comment_id: id, deleted_at: IsNull() },
     });
 
     if (!comment) throw new NotFoundException('Comentario no encontrado');
+
+    const isOwner = comment.user_id === user.user_id;
+    const isAdmin = user.role === UserRoles.ADMIN;
+    if (!isOwner && !isAdmin) throw new ForbiddenException('No autorizado');
 
     comment.deleted_at = new Date();
     await this.commentRepo.save(comment);
@@ -91,6 +101,31 @@ export class CommentsService {
     const qb = this.commentRepo.createQueryBuilder('comment');
 
     qb.where('comment.deleted_at IS NULL').andWhere('comment.post_id = :postId', { postId });
+
+    if (parentCommentId !== undefined) {
+      qb.andWhere('comment.parent_comment_id = :pid', { pid: parentCommentId });
+    } else {
+      qb.andWhere('comment.parent_comment_id IS NULL');
+    }
+
+    if (status) qb.andWhere('comment.status = :status', { status });
+
+    this.applySort(qb, sort ?? 'created_at_desc');
+    const total = await qb.getCount();
+    const data = await qb
+      .skip((page - 1) * limit)
+      .take(limit)
+      .getMany();
+    return { data, meta: this.buildMeta(page, limit, total) };
+  }
+
+  async listMine(userId: string, params: ListCommentsDto): Promise<Paginated<Comment>> {
+    const { page, limit, postId, parentCommentId, status, sort } = params;
+    const qb = this.commentRepo.createQueryBuilder('comment');
+    qb.where('comment.deleted_at IS NULL')
+      .andWhere('comment.user_id = :uid', { uid: userId });
+
+    if (postId !== undefined) qb.andWhere('comment.post_id = :postId', { postId });
 
     if (parentCommentId !== undefined) {
       qb.andWhere('comment.parent_comment_id = :pid', { pid: parentCommentId });

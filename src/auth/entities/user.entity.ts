@@ -20,6 +20,7 @@ export class User {
 
   @Column('varchar', {
     length: 100,
+    unique: true,
   })
   username: string;
 
@@ -35,6 +36,12 @@ export class User {
     nullable: true,
   })
   password?: string;
+
+  @Column('integer', {
+    name: 'avatar_media_id',
+    nullable: true,
+  })
+  avatar_media_id?: number | null;
 
   @Column('enum', {
     enum: UserRoles,

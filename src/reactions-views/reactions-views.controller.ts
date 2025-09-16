@@ -15,6 +15,9 @@ import { ListReactionsDto } from './dto/reaction/list-reactions.dto';
 import { DeleteReactionDto } from './dto/reaction/delete-reaction.dto';
 import { CreateViewDto } from './dto/view/create-view.dto';
 import { ListViewsDto } from './dto/view/list-views.dto';
+import { Auth } from '../auth/decorators/auth.decorator';
+import { GetUser } from '../auth/decorators/get-user.decorator';
+import { User } from '../auth/entities/user.entity';
 
 @ApiTags('reactions-views')
 @Controller()
@@ -23,8 +26,9 @@ export class ReactionsViewsController {
 
   // Reactions
   @HttpPost('reactions')
-  createReaction(@Body() dto: CreateReactionDto) {
-    return this.service.createReaction(dto);
+  @Auth()
+  createReaction(@Body() dto: CreateReactionDto, @GetUser() user: User) {
+    return this.service.createReactionForUser(user.user_id, dto);
   }
 
   @Get('reactions')
@@ -33,13 +37,15 @@ export class ReactionsViewsController {
   }
 
   @Delete('reactions/:id')
-  deleteReactionById(@Param('id', ParseIntPipe) id: number) {
-    return this.service.deleteReactionById(id);
+  @Auth()
+  deleteReactionById(@Param('id', ParseIntPipe) id: number, @GetUser() user: User) {
+    return this.service.deleteReactionById(id, user.user_id);
   }
 
   @Delete('reactions')
-  deleteReactionByCombo(@Body() dto: DeleteReactionDto) {
-    return this.service.deleteReaction(dto);
+  @Auth()
+  deleteReactionByCombo(@Body() dto: DeleteReactionDto, @GetUser() user: User) {
+    return this.service.deleteReaction(dto, user.user_id);
   }
 
   // Views
@@ -51,5 +57,17 @@ export class ReactionsViewsController {
   @Get('views')
   listViews(@Query() query: ListViewsDto) {
     return this.service.listViews(query);
+  }
+
+  @Get('me/reactions')
+  @Auth()
+  listMyReactions(@Query() query: ListReactionsDto, @GetUser() user: User) {
+    return this.service.listReactions({ ...query, userId: user.user_id } as any);
+  }
+
+  @Get('me/views')
+  @Auth()
+  listMyViews(@Query() query: ListViewsDto, @GetUser() user: User) {
+    return this.service.listViews({ ...query, viewerUserId: user.user_id } as any);
   }
 }
