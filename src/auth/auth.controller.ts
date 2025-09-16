@@ -60,6 +60,12 @@ export class AuthController {
     return this.authService.revokeAllRefreshTokens(user.user_id);
   }
 
+  @Get('me')
+  @Auth('admin', 'author', 'subscriber')
+  getCurrentUser(@GetUser() user: User) {
+    return user;
+  }
+
   @Auth('admin')
   @Get('private')
   testProtectedRoute() {

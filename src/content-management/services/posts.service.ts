@@ -6,6 +6,8 @@ import { PostCategory } from '../entities/post/post-category.entity';
 import { PostTag } from '../entities/post/post-tag.entity';
 import { Category } from '../entities/category/category.entity';
 import { Tag } from '../entities/tag/tag.entity';
+import { Comment, CommentStatus } from '../../comments/entities/comment/comment.entity';
+import { Reaction, ReactionType, ReactionEntityType } from '../../reactions-views/entities/reaction/reaction.entity';
 import { CreatePostDto } from '../dto/post/create-post.dto';
 import { UpdatePostDto } from '../dto/post/update-post.dto';
 import { ListPostsDto, PostSort } from '../dto/post/list-posts.dto';
@@ -33,6 +35,40 @@ export class PostsService {
 
   private buildMeta(page: number, limit: number, total: number) {
     return { page, limit, total, hasNextPage: page * limit < total };
+  }
+
+  private addCountsToQuery(qb: SelectQueryBuilder<Post>) {
+    qb.leftJoinAndSelect('post.author', 'author')
+    .leftJoin(
+      (subQuery) =>
+        subQuery
+          .select('comment.post_id', 'post_id')
+          .addSelect('COUNT(*)', 'comment_count')
+          .from(Comment, 'comment')
+          .where('comment.status IN (:...statuses)', { 
+            statuses: [CommentStatus.Approved, CommentStatus.Pending] 
+          })
+          .andWhere('comment.deleted_at IS NULL')
+          .groupBy('comment.post_id'),
+      'cc',
+      'cc.post_id = post.post_id'
+    )
+    .leftJoin(
+      (subQuery) =>
+        subQuery
+          .select('reaction.entity_id', 'entity_id')
+          .addSelect('COUNT(*)', 'like_count')
+          .from(Reaction, 'reaction')
+          .where('reaction.entity_type = :postType', { postType: ReactionEntityType.Post })
+          .andWhere('reaction.type = :likeType', { likeType: ReactionType.Like })
+          .groupBy('reaction.entity_id'),
+      'rc',
+      'rc.entity_id = post.post_id'
+    )
+    .addSelect('COALESCE(cc.comment_count, 0)', 'commentCount')
+    .addSelect('COALESCE(rc.like_count, 0)', 'likeCount');
+
+    return qb;
   }
 
   private applyPostSort(qb: SelectQueryBuilder<Post>, sort?: PostSort) {
@@ -201,6 +237,9 @@ export class PostsService {
       sort,
     } = params;
     const qb = this.postRepo.createQueryBuilder('post');
+    
+    // Agregar conteos de comentarios y likes
+    this.addCountsToQuery(qb);
 
     if (q) qb.andWhere('(post.title ILIKE :q OR post.body ILIKE :q)', { q: `%${q}%` });
 
@@ -237,25 +276,80 @@ export class PostsService {
     }
 
     this.applyPostSort(qb, sort ?? 'published_at_desc');
-    const total = await qb.getCount();
-    const data = await qb
+    
+    // Para el conteo total, usamos una consulta separada sin los JOINs de conteo
+    const countQb = this.postRepo.createQueryBuilder('post');
+    if (q) countQb.andWhere('(post.title ILIKE :q OR post.body ILIKE :q)', { q: `%${q}%` });
+    if (status) countQb.andWhere('post.status = :status', { status });
+    if (visibility) countQb.andWhere('post.visibility = :visibility', { visibility });
+    
+    // Aplicar los mismos filtros de categorías y tags para el conteo
+    if ((categoryIds && categoryIds.length) || (categorySlugs && categorySlugs.length)) {
+      countQb.innerJoin(PostCategory, 'pc', 'pc.post_id = post.post_id');
+      if (categoryIds && categoryIds.length)
+        countQb.andWhere('pc.category_id IN (:...cids)', { cids: categoryIds });
+      if (categorySlugs && categorySlugs.length) {
+        countQb.innerJoin(Category, 'c', 'c.category_id = pc.category_id').andWhere(
+          'c.slug IN (:...cslugs)',
+          { cslugs: categorySlugs }
+        );
+      }
+    }
+
+    if ((tagIds && tagIds.length) || (tagSlugs && tagSlugs.length)) {
+      countQb.innerJoin(PostTag, 'pt', 'pt.post_id = post.post_id');
+      if (tagIds && tagIds.length) countQb.andWhere('pt.tag_id IN (:...tids)', { tids: tagIds });
+      if (tagSlugs && tagSlugs.length) {
+        countQb.innerJoin(Tag, 't', 't.tag_id = pt.tag_id').andWhere('t.slug IN (:...tslugs)', {
+          tslugs: tagSlugs,
+        });
+      }
+    }
+    
+    const total = await countQb.getCount();
+    const results = await qb
       .skip((page - 1) * limit)
       .take(limit)
-      .getMany();
+      .getRawAndEntities();
+    
+    // Mapear los resultados para incluir los conteos
+    const data = results.entities.map((post, index) => ({
+      ...post,
+      commentCount: parseInt(results.raw[index].commentCount) || 0,
+      likeCount: parseInt(results.raw[index].likeCount) || 0,
+    }));
+    
     return { data, meta: this.buildMeta(page, limit, total) };
   }
 
   async findBySlug(slug: string): Promise<Post> {
-    const post = await this.postRepo.findOne({ where: { slug } });
+    const qb = this.postRepo.createQueryBuilder('post');
+    this.addCountsToQuery(qb);
+    qb.where('post.slug = :slug', { slug });
 
-    if (!post) throw new NotFoundException('Post no encontrado');
+    const result = await qb.getRawAndEntities();
+    
+    if (!result.entities.length) {
+      throw new NotFoundException('Post no encontrado');
+    }
 
-    return post;
+    const post = result.entities[0];
+    const raw = result.raw[0];
+    
+    return {
+      ...post,
+      commentCount: parseInt(raw.commentCount) || 0,
+      likeCount: parseInt(raw.likeCount) || 0,
+    } as Post;
   }
 
   async listMine(authorUserId: string, params: ListPostsDto): Promise<Paginated<Post>> {
     const { page, limit, q, status, visibility, sort } = params;
     const qb = this.postRepo.createQueryBuilder('post');
+    
+    // Agregar conteos de comentarios y likes
+    this.addCountsToQuery(qb);
+    
     qb.where('post.author_user_id = :uid', { uid: authorUserId });
 
     if (q) qb.andWhere('(post.title ILIKE :q OR post.body ILIKE :q)', { q: `%${q}%` });
@@ -263,11 +357,27 @@ export class PostsService {
     if (visibility) qb.andWhere('post.visibility = :visibility', { visibility });
 
     this.applyPostSort(qb, sort ?? 'published_at_desc');
-    const total = await qb.getCount();
-    const data = await qb
+    
+    // Para el conteo total, usamos una consulta separada
+    const countQb = this.postRepo.createQueryBuilder('post');
+    countQb.where('post.author_user_id = :uid', { uid: authorUserId });
+    if (q) countQb.andWhere('(post.title ILIKE :q OR post.body ILIKE :q)', { q: `%${q}%` });
+    if (status) countQb.andWhere('post.status = :status', { status });
+    if (visibility) countQb.andWhere('post.visibility = :visibility', { visibility });
+    
+    const total = await countQb.getCount();
+    const results = await qb
       .skip((page - 1) * limit)
       .take(limit)
-      .getMany();
+      .getRawAndEntities();
+    
+    // Mapear los resultados para incluir los conteos
+    const data = results.entities.map((post, index) => ({
+      ...post,
+      commentCount: parseInt(results.raw[index].commentCount) || 0,
+      likeCount: parseInt(results.raw[index].likeCount) || 0,
+    }));
+    
     return { data, meta: this.buildMeta(page, limit, total) };
   }
 }

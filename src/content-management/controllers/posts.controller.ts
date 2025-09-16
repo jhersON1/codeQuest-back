@@ -34,6 +34,12 @@ export class PostsController {
     return this.postsService.list(query);
   }
 
+  @Get('me')
+  @Auth()
+  listMine(@Query() query: ListPostsDto, @GetUser() user: User) {
+    return this.postsService.listMine(user.user_id, query);
+  }
+
   @Get(':slug')
   getBySlug(@Param('slug') slug: string) {
     return this.postsService.findBySlug(slug);
@@ -53,11 +59,5 @@ export class PostsController {
   @Auth()
   delete(@Param('id', ParseIntPipe) id: number, @GetUser() user: User) {
     return this.postsService.delete(id, user);
-  }
-
-  @Get('me')
-  @Auth()
-  listMine(@Query() query: ListPostsDto, @GetUser() user: User) {
-    return this.postsService.listMine(user.user_id, query);
   }
 }

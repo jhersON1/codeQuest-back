@@ -3,12 +3,17 @@ import {
   CreateDateColumn,
   Entity,
   Index,
+  JoinColumn,
+  ManyToOne,
   OneToMany,
   PrimaryGeneratedColumn,
   UpdateDateColumn,
 } from 'typeorm';
 import { PostCategory } from './post-category.entity';
 import { PostTag } from './post-tag.entity';
+import { Comment } from '../../../comments/entities/comment/comment.entity';
+import { Reaction } from '../../../reactions-views/entities/reaction/reaction.entity';
+import { User } from '../../../auth/entities/user.entity';
 
 export enum PostStatus {
   Draft = 'draft',
@@ -65,6 +70,10 @@ export class Post {
   @Column({ name: 'author_user_id', type: 'uuid' })
   author_user_id!: string;
 
+  @ManyToOne(() => User, { eager: false })
+  @JoinColumn({ name: 'author_user_id' })
+  author!: User;
+
   @CreateDateColumn({ name: 'created_at', type: 'timestamptz' })
   created_at!: Date;
 
@@ -80,4 +89,14 @@ export class Post {
     cascade: false,
   })
   postTags!: PostTag[];
+
+  @OneToMany(() => Comment, (comment) => comment.post_id, {
+    cascade: false,
+  })
+  comments!: Comment[];
+
+  @OneToMany(() => Reaction, (reaction) => reaction.entity_id, {
+    cascade: false,
+  })
+  reactions!: Reaction[];
 }

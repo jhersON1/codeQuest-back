@@ -3,6 +3,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { ObjectLiteral, Repository } from 'typeorm';
 import { User } from '../auth/entities/user.entity';
 import { seedUsers } from './data/seed-users';
+import * as argon2 from 'argon2';
 
 @Injectable()
 export class SeedService {
@@ -25,7 +26,15 @@ export class SeedService {
   async seedUsers() {
     await this.deleteTableRegisters(this.userRepository);
 
-    const stagedSeedUsers: User[] = this.userRepository.create(seedUsers);
+    // Hash las contraseñas antes de crear los usuarios
+    const usersWithHashedPasswords = await Promise.all(
+      seedUsers.map(async (user) => ({
+        ...user,
+        password: await argon2.hash(user.password),
+      }))
+    );
+
+    const stagedSeedUsers: User[] = this.userRepository.create(usersWithHashedPasswords);
 
     await this.userRepository.save(stagedSeedUsers);
     this.logger.log(`Created ${stagedSeedUsers.length} Users`);
