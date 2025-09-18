@@ -67,6 +67,9 @@ export class Post {
   @Column({ name: 'cover_image_id', type: 'integer', nullable: true })
   cover_image_id!: number | null;
 
+  @Column({ name: 'featured_image_url', type: 'varchar', length: 2048, nullable: true })
+  featured_image_url!: string | null;
+
   @Column({ name: 'author_user_id', type: 'uuid' })
   author_user_id!: string;
 

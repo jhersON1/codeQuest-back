@@ -122,6 +122,7 @@ export class PostsService {
       published_at: publishedAt,
       visibility: dto.visibility ?? PostVisibility.Public,
       cover_image_id: dto.coverImageId ?? null,
+      featured_image_url: dto.featuredImageUrl ?? null,
       author_user_id: authorUserId,
     });
     const saved = await this.postRepo.save(post);
@@ -177,6 +178,8 @@ export class PostsService {
     if (dto.visibility !== undefined) post.visibility = dto.visibility;
 
     if (dto.coverImageId !== undefined) post.cover_image_id = dto.coverImageId ?? null;
+    if (dto.featuredImageUrl !== undefined)
+      post.featured_image_url = dto.featuredImageUrl ?? null;
 
     const newPublishedAt = dto.publishedAt ? new Date(dto.publishedAt) : undefined;
 

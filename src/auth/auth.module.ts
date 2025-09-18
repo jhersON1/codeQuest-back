@@ -35,5 +35,6 @@ import { OAuthAccount } from './entities/oauth-account.entity';
   ],
   controllers: [AuthController],
   providers: [AuthService, JwtStrategy, JwtRefreshStrategy, DiscordStrategy],
+  exports: [PassportModule],
 })
 export class AuthModule {}

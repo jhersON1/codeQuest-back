@@ -11,6 +11,7 @@ import {
   MaxLength,
   Min,
   ValidateIf,
+  IsUrl,
 } from 'class-validator';
 import { Type } from 'class-transformer';
 import { PostStatus, PostVisibility } from '../../entities/post/post.entity';
@@ -56,6 +57,16 @@ export class CreatePostDto {
   @IsInt()
   @Min(1)
   coverImageId?: number;
+
+  @ApiPropertyOptional({
+    example: 'http://localhost:3000/uploads/your-image.jpg',
+    description: 'URL absoluta a la imagen destacada (opcional)'
+  })
+  @IsOptional()
+  @IsString()
+  @MaxLength(2048)
+  @ValidateIf((o) => !o.coverImageId)
+  featuredImageUrl?: string;
 
   @ApiPropertyOptional({ example: [1, 2, 3], description: 'IDs de categorías' })
   @IsOptional()
