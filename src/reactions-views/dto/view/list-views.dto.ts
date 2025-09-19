@@ -1,5 +1,5 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
-import { IsDateString, IsInt, IsOptional, Max, Min } from 'class-validator';
+import { IsDateString, IsInt, IsOptional, IsUUID, Max, Min } from 'class-validator';
 import { Type } from 'class-transformer';
 
 export type ViewSort = 'created_at_desc' | 'created_at_asc';
@@ -24,12 +24,10 @@ export class ListViewsDto {
   @Min(1)
   entityId!: number;
 
-  @ApiPropertyOptional({ example: 42 })
-  @Type(() => Number)
+  @ApiPropertyOptional({ example: 'uuid-1234' })
   @IsOptional()
-  @IsInt()
-  @Min(1)
-  viewerUserId?: number;
+  @IsUUID()
+  viewerUserId?: string;
 
   @ApiPropertyOptional({ example: '2025-01-01T00:00:00.000Z' })
   @IsOptional()

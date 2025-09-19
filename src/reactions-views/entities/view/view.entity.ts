@@ -19,8 +19,8 @@ export class View {
   @Column({ name: 'entity_id', type: 'integer' })
   entity_id!: number;
 
-  @Column({ name: 'viewer_user_id', type: 'integer', nullable: true })
-  viewer_user_id!: number | null;
+  @Column({ name: 'viewer_user_id', type: 'uuid', nullable: true })
+  viewer_user_id!: string | null;
 
   @Column({ name: 'ip', type: 'varchar', length: 64, nullable: true })
   ip!: string | null;

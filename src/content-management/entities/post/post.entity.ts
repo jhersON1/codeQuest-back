@@ -3,12 +3,17 @@ import {
   CreateDateColumn,
   Entity,
   Index,
+  JoinColumn,
+  ManyToOne,
   OneToMany,
   PrimaryGeneratedColumn,
   UpdateDateColumn,
 } from 'typeorm';
 import { PostCategory } from './post-category.entity';
 import { PostTag } from './post-tag.entity';
+import { Comment } from '../../../comments/entities/comment/comment.entity';
+import { Reaction } from '../../../reactions-views/entities/reaction/reaction.entity';
+import { User } from '../../../auth/entities/user.entity';
 
 export enum PostStatus {
   Draft = 'draft',
@@ -24,6 +29,7 @@ export enum PostVisibility {
 @Entity({ name: 'posts' })
 @Index(['status'])
 @Index(['published_at'])
+@Index(['author_user_id'])
 export class Post {
   @PrimaryGeneratedColumn({ name: 'post_id', type: 'integer' })
   post_id!: number;
@@ -61,6 +67,16 @@ export class Post {
   @Column({ name: 'cover_image_id', type: 'integer', nullable: true })
   cover_image_id!: number | null;
 
+  @Column({ name: 'featured_image_url', type: 'varchar', length: 2048, nullable: true })
+  featured_image_url!: string | null;
+
+  @Column({ name: 'author_user_id', type: 'uuid' })
+  author_user_id!: string;
+
+  @ManyToOne(() => User, { eager: false })
+  @JoinColumn({ name: 'author_user_id' })
+  author!: User;
+
   @CreateDateColumn({ name: 'created_at', type: 'timestamptz' })
   created_at!: Date;
 
@@ -76,4 +92,14 @@ export class Post {
     cascade: false,
   })
   postTags!: PostTag[];
+
+  @OneToMany(() => Comment, (comment) => comment.post_id, {
+    cascade: false,
+  })
+  comments!: Comment[];
+
+  @OneToMany(() => Reaction, (reaction) => reaction.entity_id, {
+    cascade: false,
+  })
+  reactions!: Reaction[];
 }

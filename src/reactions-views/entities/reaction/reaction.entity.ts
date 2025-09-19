@@ -16,8 +16,8 @@ export class Reaction {
   @PrimaryGeneratedColumn({ name: 'reaction_id', type: 'integer' })
   reaction_id!: number;
 
-  @Column({ name: 'user_id', type: 'integer', nullable: true })
-  user_id!: number | null;
+  @Column({ name: 'user_id', type: 'uuid' })
+  user_id!: string;
 
   @Column({ name: 'entity_type', type: 'enum', enum: ReactionEntityType })
   entity_type!: ReactionEntityType;

@@ -1,14 +1,12 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { Type } from 'class-transformer';
-import { IsEnum, IsInt, Min } from 'class-validator';
+import { IsEnum, IsUUID, IsInt, Min } from 'class-validator';
 import { FollowEntityType } from '../../entities/follow/follow.entity';
 
 export class CreateFollowDto {
-  @ApiProperty({ example: 42, description: 'ID del usuario que sigue', minimum: 1 })
-  @Type(() => Number)
-  @IsInt()
-  @Min(1)
-  followerUserId!: number;
+  @ApiProperty({ example: 'uuid-1234', description: 'ID del usuario que sigue' })
+  @IsUUID()
+  followerUserId!: string;
 
   @ApiProperty({
     example: 'post',

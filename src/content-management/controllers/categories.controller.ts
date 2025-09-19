@@ -14,6 +14,7 @@ import { CategoriesService } from '../services/categories.service';
 import { CreateCategoryDto } from '../dto/category/create-category.dto';
 import { ListCategoriesDto } from '../dto/category/list-categories.dto';
 import { UpdateCategoryDto } from '../dto/category/update-category.dto';
+import { Auth } from '../../auth/decorators/auth.decorator';
 
 @ApiTags('content-management')
 @Controller('categories')
@@ -21,6 +22,7 @@ export class CategoriesController {
   constructor(private readonly categoriesService: CategoriesService) {}
 
   @HttpPost('')
+  @Auth('admin')
   create(@Body() dto: CreateCategoryDto) {
     return this.categoriesService.create(dto);
   }
@@ -36,11 +38,13 @@ export class CategoriesController {
   }
 
   @Patch(':id')
+  @Auth('admin')
   update(@Param('id', ParseIntPipe) id: number, @Body() dto: UpdateCategoryDto) {
     return this.categoriesService.update(id, dto);
   }
 
   @Delete(':id')
+  @Auth('admin')
   delete(@Param('id', ParseIntPipe) id: number) {
     return this.categoriesService.delete(id);
   }

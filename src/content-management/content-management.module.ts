@@ -1,5 +1,6 @@
 import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
+import { PassportModule } from '@nestjs/passport';
 import { PostsController } from './controllers/posts.controller';
 import { CategoriesController } from './controllers/categories.controller';
 import { TagsController } from './controllers/tags.controller';
@@ -12,9 +13,13 @@ import { Category } from './entities/category/category.entity';
 import { Tag } from './entities/tag/tag.entity';
 import { PostCategory } from './entities/post/post-category.entity';
 import { PostTag } from './entities/post/post-tag.entity';
+import { User } from '../auth/entities/user.entity';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([Post, Category, Tag, PostCategory, PostTag])],
+  imports: [
+    TypeOrmModule.forFeature([Post, Category, Tag, PostCategory, PostTag, User]),
+    PassportModule.register({ defaultStrategy: 'jwt' }),
+  ],
   controllers: [PostsController, CategoriesController, TagsController],
   providers: [PostsService, CategoriesService, TagsService, SlugService],
   exports: [PostsService, CategoriesService, TagsService, SlugService],

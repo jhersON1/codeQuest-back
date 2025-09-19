@@ -1,5 +1,5 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
-import { IsEnum, IsInt, IsOptional, IsString, Min } from 'class-validator';
+import { IsEnum, IsInt, IsOptional, IsString, IsUUID, Min } from 'class-validator';
 import { Type } from 'class-transformer';
 import { ViewEntityType } from '../../entities/view/view.entity';
 
@@ -14,12 +14,10 @@ export class CreateViewDto {
   @Min(1)
   entityId!: number;
 
-  @ApiPropertyOptional({ example: 42, description: 'viewer_user_id (opcional)' })
-  @Type(() => Number)
+  @ApiPropertyOptional({ example: 'uuid-1234', description: 'viewer_user_id (opcional)' })
   @IsOptional()
-  @IsInt()
-  @Min(1)
-  viewerUserId?: number;
+  @IsUUID()
+  viewerUserId?: string;
 
   @ApiPropertyOptional({ example: '192.168.0.1' })
   @IsOptional()
