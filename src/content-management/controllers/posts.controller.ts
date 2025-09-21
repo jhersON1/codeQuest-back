@@ -53,7 +53,7 @@ export class PostsController {
 
   @Delete(':id')
   @Auth()
-  delete(@Param('id', ParseIntPipe) id: number) {
-    return this.postsService.delete(id);
+  delete(@Param('id', ParseIntPipe) id: number, @GetUser() user: User) {
+    return this.postsService.delete(id, user);
   }
 }
