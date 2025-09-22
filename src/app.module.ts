@@ -11,6 +11,7 @@ import { BookmarksModule } from './bookmarks/bookmarks.module';
 import { FollowsModule } from './follows/follows.module';
 import { UsersModule } from './users/users.module';
 import { UploadsModule } from './uploads/uploads.module';
+import { SearchModule } from './search/search.module';
 
 @Module({
   imports: [
@@ -33,6 +34,7 @@ import { UploadsModule } from './uploads/uploads.module';
     FollowsModule,
     UsersModule,
     UploadsModule,
+    SearchModule,
   ],
   controllers: [AppController],
   providers: [AppService],

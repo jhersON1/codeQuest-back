@@ -7,6 +7,7 @@ import { UploadsController } from './uploads.controller';
 import { AuthModule } from '../auth/auth.module';
 
 const uploadsDir = join(process.cwd(), 'uploads');
+
 if (!existsSync(uploadsDir)) {
   mkdirSync(uploadsDir, { recursive: true });
 }

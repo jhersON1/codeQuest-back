@@ -1,4 +1,4 @@
-import { Module } from '@nestjs/common';
+import { forwardRef, Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { PassportModule } from '@nestjs/passport';
 import { PostsController } from './controllers/posts.controller';
@@ -14,11 +14,13 @@ import { Tag } from './entities/tag/tag.entity';
 import { PostCategory } from './entities/post/post-category.entity';
 import { PostTag } from './entities/post/post-tag.entity';
 import { User } from '../auth/entities/user.entity';
+import { SearchModule } from '../search/search.module';
 
 @Module({
   imports: [
     TypeOrmModule.forFeature([Post, Category, Tag, PostCategory, PostTag, User]),
     PassportModule.register({ defaultStrategy: 'jwt' }),
+    forwardRef(() => SearchModule),
   ],
   controllers: [PostsController, CategoriesController, TagsController],
   providers: [PostsService, CategoriesService, TagsService, SlugService],

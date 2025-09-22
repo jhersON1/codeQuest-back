@@ -21,7 +21,9 @@ export class UploadsController {
       fileFilter: (_req, file, cb) => {
         const allowed = /\.(png|jpe?g|gif|webp|svg)$/i.test(file.originalname);
         const isImage = /^image\//i.test(file.mimetype);
+
         if (allowed && isImage) return cb(null, true);
+
         cb(new BadRequestException('Solo se permiten imágenes'), false);
       },
     }),
@@ -33,9 +35,11 @@ export class UploadsController {
       properties: {
         file: { type: 'string', format: 'binary' },
       },
-  }})
+    },
+  })
   upload(@UploadedFile() file?: Multer.File) {
     if (!file) throw new BadRequestException('Archivo no recibido');
+
     const base = process.env.PUBLIC_URL || process.env.APP_URL || 'http://localhost:3000';
     const url = `${base}/uploads/${file.filename}`;
     return {
