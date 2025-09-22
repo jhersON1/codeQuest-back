@@ -25,7 +25,8 @@ import { UserRoles } from '../../auth/enums/user-roles.enum';
 import { CategoriesService } from './categories.service';
 import { TagsService } from './tags.service';
 import { SlugService } from './slug.service';
-import { SearchService } from 'src/search/search.service';
+import { SearchService } from '../../search/search.service';
+
 
 export type Paginated<T> = {
   data: T[];
