@@ -248,6 +248,7 @@ export class PostsService {
     if (!isOwner && !isAdmin) throw new ForbiddenException('No autorizado');
 
     await this.postRepo.delete({ post_id: id });
+    await this.searchService.deleteDocument(id)
   }
 
   async list(params: ListPostsDto): Promise<Paginated<Post>> {
