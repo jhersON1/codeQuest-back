@@ -34,6 +34,7 @@
     "argon2": "^0.44.0",
     "class-transformer": "^0.5.1",
     "class-validator": "^0.14.2",
+    "meilisearch": "^0.53.0",
     "passport": "^0.7.0",
     "passport-discord": "^0.1.4",
     "passport-jwt": "^4.0.1",

@@ -5,6 +5,8 @@
 
 # Logs
 /db_data
+/meili_data
+
 logs
 *.log
 npm-debug.log*

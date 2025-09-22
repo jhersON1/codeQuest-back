@@ -26,7 +26,7 @@ export class ListPostsDto {
   @ApiPropertyOptional({ example: 'nestjs', description: 'Búsqueda por título/cuerpo (ILIKE)' })
   @IsOptional()
   @IsString()
-  q?: string;
+  search?: string;
 
   @ApiPropertyOptional({ enum: PostStatus, example: PostStatus.Published })
   @IsOptional()

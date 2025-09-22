@@ -11,3 +11,13 @@ services:
     container_name: postgres-db
     volumes:
       - ./db_data:/var/lib/postgresql/data
+
+  meilisearch:
+    image: getmeili/meilisearch:v1.12.1
+    container_name: meilisearch
+    ports:
+      - "7700:7700"
+    environment:
+      MEILI_MASTER_KEY: "masterKey" # Use a more secure key in production
+    volumes:
+      - ./meili_data:/meili_data
