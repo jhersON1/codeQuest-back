@@ -64,7 +64,7 @@ export class CreatePostDto {
   @IsOptional()
   @IsString()
   @MaxLength(2048)
-  @ValidateIf((o) => !o?.coverImageId)
+  @ValidateIf((o: CreatePostDto) => !o.coverImageId)
   featuredImageUrl?: string;
 
   @ApiPropertyOptional({ example: [1, 2, 3], description: 'IDs de categorías' })

@@ -237,12 +237,17 @@ export class PostsService {
     return updated;
   }
 
-  async delete(id: number): Promise<void> {
-    const result = await this.postRepo.delete({ post_id: id });
+  async delete(id: number, currentUser: User): Promise<void> {
+    const post = await this.postRepo.findOne({ where: { post_id: id } });
 
-    if (!result.affected) throw new NotFoundException('Post no encontrado');
+    if (!post) throw new NotFoundException('Post no encontrado');
 
-    await this.searchService.deleteDocument(id);
+    const isOwner = post.author_user_id === currentUser.user_id;
+    const isAdmin = currentUser.role === UserRoles.ADMIN;
+
+    if (!isOwner && !isAdmin) throw new ForbiddenException('No autorizado');
+
+    await this.postRepo.delete({ post_id: id });
   }
 
   async list(params: ListPostsDto): Promise<Paginated<Post>> {

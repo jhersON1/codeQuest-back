@@ -8,7 +8,7 @@ import {
 import { FileInterceptor } from '@nestjs/platform-express';
 import { ApiBody, ApiConsumes, ApiTags } from '@nestjs/swagger';
 import { extname, join } from 'path';
-import * as Multer from 'multer';
+import type { Express } from 'express';
 import { Auth } from '../auth/decorators/auth.decorator';
 
 @ApiTags('uploads')
@@ -37,7 +37,7 @@ export class UploadsController {
       },
     },
   })
-  upload(@UploadedFile() file?: Multer.File) {
+  upload(@UploadedFile() file?: Express.Multer.File) {
     if (!file) throw new BadRequestException('Archivo no recibido');
 
     const base = process.env.PUBLIC_URL || process.env.APP_URL || 'http://localhost:3000';
