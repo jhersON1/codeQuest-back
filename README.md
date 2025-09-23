@@ -2,97 +2,132 @@
   <a href="http://nestjs.com/" target="blank"><img src="https://nestjs.com/img/logo-small.svg" width="120" alt="Nest Logo" /></a>
 </p>
 
-[circleci-image]: https://img.shields.io/circleci/build/github/nestjs/nest/master?token=abc123def456
-[circleci-url]: https://circleci.com/gh/nestjs/nest
 
-  <p align="center">A progressive <a href="http://nodejs.org" target="_blank">Node.js</a> framework for building efficient and scalable server-side applications.</p>
-    <p align="center">
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/v/@nestjs/core.svg" alt="NPM Version" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/l/@nestjs/core.svg" alt="Package License" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/dm/@nestjs/common.svg" alt="NPM Downloads" /></a>
-<a href="https://circleci.com/gh/nestjs/nest" target="_blank"><img src="https://img.shields.io/circleci/build/github/nestjs/nest/master" alt="CircleCI" /></a>
-<a href="https://discord.gg/G7Qnnhy" target="_blank"><img src="https://img.shields.io/badge/discord-online-brightgreen.svg" alt="Discord"/></a>
-<a href="https://opencollective.com/nest#backer" target="_blank"><img src="https://opencollective.com/nest/backers/badge.svg" alt="Backers on Open Collective" /></a>
-<a href="https://opencollective.com/nest#sponsor" target="_blank"><img src="https://opencollective.com/nest/sponsors/badge.svg" alt="Sponsors on Open Collective" /></a>
-  <a href="https://paypal.me/kamilmysliwiec" target="_blank"><img src="https://img.shields.io/badge/Donate-PayPal-ff3f59.svg" alt="Donate us"/></a>
-    <a href="https://opencollective.com/nest#sponsor"  target="_blank"><img src="https://img.shields.io/badge/Support%20us-Open%20Collective-41B883.svg" alt="Support us"></a>
-  <a href="https://twitter.com/nestframework" target="_blank"><img src="https://img.shields.io/twitter/follow/nestframework.svg?style=social&label=Follow" alt="Follow us on Twitter"></a>
-</p>
-  <!--[![Backers on Open Collective](https://opencollective.com/nest/backers/badge.svg)](https://opencollective.com/nest#backer)
-  [![Sponsors on Open Collective](https://opencollective.com/nest/sponsors/badge.svg)](https://opencollective.com/nest#sponsor)-->
+Claro, aquí tienes una plantilla de documentación para tu archivo `README.md` basada en los requisitos que mencionaste. Puedes copiar y pegar este contenido directamente en tu archivo y personalizar CodeQuest y otros detalles.
 
-## Description
+-----
 
-[Nest](https://github.com/nestjs/nest) framework TypeScript starter repository.
+CodeQuest
 
-## Project setup
+Una breve descripción de lo que hace este proyecto. Este es un backend construido con NestJS que se integra con Discord para la autenticación, utiliza una base de datos PostgreSQL y MeiliSearch para búsquedas, todo orquestado con Docker.
 
-```bash
-$ npm install
-```
+## Tabla de Contenidos
 
-## Compile and run the project
+  - [Requisitos Previos](https://www.google.com/search?q=%23requisitos-previos)
+  - [Guía de Inicio Rápido](https://www.google.com/search?q=%23gu%C3%ADa-de-inicio-r%C3%A1pido)
+      - [1. Instalar Dependencias](https://www.google.com/search?q=%231-instalar-dependencias)
+      - [2. Crear Aplicación de Discord](https://www.google.com/search?q=%232-crear-aplicaci%C3%B3n-de-discord)
+      - [3. Configurar Variables de Entorno](https://www.google.com/search?q=%233-configurar-variables-de-entorno)
+      - [4. Levantar Servicios con Docker](https://www.google.com/search?q=%234-levantar-servicios-con-docker)
+      - [5. Poblar la Base de Datos (Seed)](https://www.google.com/search?q=%235-poblar-la-base-de-datos-seed)
+      - [6. Ejecutar el Proyecto](https://www.google.com/search?q=%236-ejecutar-el-proyecto)
+  - [Scripts Disponibles](https://www.google.com/search?q=%23scripts-disponibles)
 
-```bash
-# development
-$ npm run start
+-----
 
-# watch mode
-$ npm run start:dev
+## Requisitos Previos
 
-# production mode
-$ npm run start:prod
-```
+Antes de comenzar, asegúrate de tener instalado lo siguiente en tu sistema:
 
-## Run tests
+  - [Node.js](https://nodejs.org/en/) (v18 o superior)
+  - [npm](https://www.google.com/search?q=https://www.npmjs.com/) o [yarn](https://yarnpkg.com/)
+  - [Docker](https://www.docker.com/products/docker-desktop/) y Docker Compose
+
+-----
+
+## Guía de Inicio Rápido
+
+Sigue estos pasos para configurar y ejecutar el proyecto en tu entorno local.
+
+### 1\. Instalar Dependencias
+
+Primero, clona el repositorio (si aún no lo has hecho) y luego instala todas las dependencias del proyecto usando npm:
 
 ```bash
-# unit tests
-$ npm run test
-
-# e2e tests
-$ npm run test:e2e
-
-# test coverage
-$ npm run test:cov
+npm install
 ```
 
-## Deployment
+### 2\. Crear Aplicación de Discord
 
-When you're ready to deploy your NestJS application to production, there are some key steps you can take to ensure it runs as efficiently as possible. Check out the [deployment documentation](https://docs.nestjs.com/deployment) for more information.
+Para la autenticación con Discord, necesitas credenciales de una aplicación.
 
-If you are looking for a cloud-based platform to deploy your NestJS application, check out [Mau](https://mau.nestjs.com), our official platform for deploying NestJS applications on AWS. Mau makes deployment straightforward and fast, requiring just a few simple steps:
+1.  Ve al **[Portal de Desarrolladores de Discord](https://www.google.com/search?q=https://discord.com/developers/applications)**.
+2.  Haz clic en **"New Application"** y dale un nombre a tu aplicación.
+3.  Navega a la pestaña **"OAuth2" -\> "General"**.
+4.  Copia el **CLIENT ID** y genera un **CLIENT SECRET** haciendo clic en "Reset Secret". Guarda ambos valores, los necesitarás en el siguiente paso.
+5.  En la sección **"Redirects"**, añade la URL de callback. Para el entorno de desarrollo, esta suele ser:
+    `http://localhost:3000/auth/discord/callback`
+    (Asegúrate de que el puerto coincida con el de tu backend).
+
+### 3\. Configurar Variables de Entorno
+
+El proyecto utiliza un archivo `.env` para gestionar las variables de entorno. Se proporciona una plantilla para facilitar la configuración.
+
+1.  Copia el archivo `env.template` y renómbralo a `.env`:
+
+    ```bash
+    cp env.template .env
+    ```
+
+2.  Abre el archivo `.env` y rellena las variables con los valores correspondientes. Especialmente, asegúrate de configurar las credenciales de Discord que obtuviste en el paso anterior:
+
+    ```env
+    # Discord OAuth
+    DISCORD_CLIENT_ID=TU_CLIENT_ID_DE_DISCORD
+    DISCORD_CLIENT_SECRET=TU_CLIENT_SECRET_DE_DISCORD
+    DISCORD_CALLBACK_URL=http://localhost:3000/auth/discord/callback
+
+    # Database
+    POSTGRES_USER=admin
+    POSTGRES_PASSWORD=password123
+    POSTGRES_DB=project_db
+    DATABASE_URL="postgresql://admin:password123@localhost:5432/project_db?schema=public"
+
+    # MeiliSearch
+    MEILISEARCH_HOST=http://localhost:7700
+    MEILISEARCH_API_KEY=una_llave_maestra_segura
+    ```
+
+### 4\. Levantar Servicios con Docker
+
+Este proyecto utiliza Docker para ejecutar la base de datos (PostgreSQL) y el motor de búsqueda (MeiliSearch).
+
+1.  **Verifica que Docker Engine esté corriendo** en tu sistema.
+
+2.  Ejecuta el siguiente comando para levantar los contenedores en segundo plano (`-d`):
+
+    ```bash
+    docker-compose up -d
+    ```
+
+    Este comando leerá el archivo `docker-compose.yml` y creará e iniciará los servicios de la base de datos y MeiliSearch.
+
+### 5\. Poblar la Base de Datos (Seed)
+
+Una vez que la base de datos esté corriendo, puedes poblarla con datos de ejemplo ejecutando el script de "seed". Esto es útil para tener usuarios y otros datos con los que probar la aplicación.
 
 ```bash
-$ npm install -g @nestjs/mau
-$ mau deploy
+npm run seed
 ```
 
-With Mau, you can deploy your application in just a few clicks, allowing you to focus on building features rather than managing infrastructure.
+### 6\. Ejecutar el Proyecto
 
-## Resources
+Finalmente, para iniciar la aplicación de NestJS en modo de desarrollo, ejecuta:
 
-Check out a few resources that may come in handy when working with NestJS:
+```bash
+npm run start:dev
+```
 
-- Visit the [NestJS Documentation](https://docs.nestjs.com) to learn more about the framework.
-- For questions and support, please visit our [Discord channel](https://discord.gg/G7Qnnhy).
-- To dive deeper and get more hands-on experience, check out our official video [courses](https://courses.nestjs.com/).
-- Deploy your application to AWS with the help of [NestJS Mau](https://mau.nestjs.com) in just a few clicks.
-- Visualize your application graph and interact with the NestJS application in real-time using [NestJS Devtools](https://devtools.nestjs.com).
-- Need help with your project (part-time to full-time)? Check out our official [enterprise support](https://enterprise.nestjs.com).
-- To stay in the loop and get updates, follow us on [X](https://x.com/nestframework) and [LinkedIn](https://linkedin.com/company/nestjs).
-- Looking for a job, or have a job to offer? Check out our official [Jobs board](https://jobs.nestjs.com).
+Este comando iniciará el servidor y lo reiniciará automáticamente cada vez que detecte cambios en los archivos del código fuente. ¡Tu backend debería estar corriendo en `http://localhost:3000`\! 🚀
 
-## Support
+-----
 
-Nest is an MIT-licensed open source project. It can grow thanks to the sponsors and support by the amazing backers. If you'd like to join them, please [read more here](https://docs.nestjs.com/support).
+## Scripts Disponibles
 
-## Stay in touch
+En el archivo `package.json`, puedes encontrar otros scripts útiles:
 
-- Author - [Kamil Myśliwiec](https://twitter.com/kammysliwiec)
-- Website - [https://nestjs.com](https://nestjs.com/)
-- Twitter - [@nestframework](https://twitter.com/nestframework)
+  - `npm run build`: Compila el proyecto TypeScript a JavaScript.
+  - `npm start`: Inicia la aplicación en modo de producción (después de compilar).
+  - `npm run lint`: Ejecuta el linter para revisar la calidad del código.
+  - `npm run test`: Ejecuta las pruebas unitarias.
 
-## License
-
-Nest is [MIT licensed](https://github.com/nestjs/nest/blob/master/LICENSE).
