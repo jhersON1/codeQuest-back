@@ -148,11 +148,12 @@ export class AuthService {
     provider: string;
     providerUserId: string;
     suggestedUsername?: string;
+    email?: string | null;
     accessToken?: string | null;
     refreshToken?: string | null;
     expiresAt?: Date | null;
   }): Promise<User> {
-    const { provider, providerUserId, suggestedUsername, accessToken, refreshToken, expiresAt } =
+    const { provider, providerUserId, suggestedUsername, email, accessToken, refreshToken, expiresAt } =
       params;
 
     const existing = await this.oauthAccountRepo.findOne({
@@ -198,7 +199,7 @@ export class AuthService {
       username = `${base}${suffix}`;
     }
 
-    const user = this.userRepository.create({ username });
+    const user = this.userRepository.create({ username, email: email ?? null });
     await this.userRepository.save(user);
 
     const account = this.oauthAccountRepo.create({
