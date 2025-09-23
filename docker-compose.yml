@@ -21,3 +21,5 @@ services:
       MEILI_MASTER_KEY: "masterKey" # Use a more secure key in production
     volumes:
       - ./meili_data:/meili_data
+volumes:
+  meili_data:
