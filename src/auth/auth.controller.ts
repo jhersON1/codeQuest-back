@@ -36,17 +36,20 @@ export class AuthController {
     @GetUser() user: User,
     @Res() res: Response
   ) {
+    console.log('Discord callback called with user:', { userId: user.user_id, username: user.username });
+    
     const accessToken = this.authService.issueAccessToken(user.user_id);
     const refreshToken = await this.authService.issueRefreshToken(user.user_id);
 
     const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:3001';
 
-    const redirectUrl = `${frontendUrl}/discord/callback?accessToken=${accessToken}&refreshToken=${refreshToken}`;
+    const redirectUrl = `${frontendUrl}/discord/callback?accessToken=${encodeURIComponent(
+      accessToken,
+    )}&refreshToken=${encodeURIComponent(refreshToken)}`;
 
-    console.log(redirectUrl)
+    console.log('Redirecting to:', redirectUrl);
 
     res.redirect(redirectUrl);
-
   }
 
   @HttpCode(200)
@@ -77,7 +80,9 @@ export class AuthController {
   @Get('me')
   @Auth('admin', 'author', 'subscriber')
   getCurrentUser(@GetUser() user: User) {
-    return user;
+    // Do not expose sensitive fields
+    const { password, ...safeUser } = user as unknown as { password?: string } & User
+    return safeUser as User
   }
 
   @Auth('admin')

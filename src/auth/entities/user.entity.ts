@@ -29,7 +29,7 @@ export class User {
     unique: true,
     nullable: true,
   })
-  email: string;
+  email: string | null;
 
   @Column('varchar', {
     length: 255,

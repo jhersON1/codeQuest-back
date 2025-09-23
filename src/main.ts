@@ -8,7 +8,16 @@ import { join } from 'path';
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
 
-  app.enableCors();
+  // Configuración de CORS más específica
+  app.enableCors({
+    origin: [
+      'http://localhost:3001', // Frontend en desarrollo
+      'http://127.0.0.1:3001',
+    ],
+    methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'Authorization'],
+    credentials: true,
+  });
 
   // Serve uploaded files statically at /uploads
   app.use('/uploads', express.static(join(process.cwd(), 'uploads')));
