@@ -1,4 +1,4 @@
-import { Controller, Post, Body, Get, HttpCode, UseGuards } from '@nestjs/common';
+import { Controller, Post, Body, Get, HttpCode, UseGuards, Res } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { LoginUserDto } from './dto/login-user.dto';
 import { RegisterUserDto } from './dto/register-user.dto';
@@ -7,6 +7,7 @@ import { AuthGuard } from '@nestjs/passport';
 import { GetUser } from './decorators/get-user.decorator';
 import { User } from './entities/user.entity';
 import { GetToken } from './decorators/get-token.decorator';
+import type { Response } from 'express';
 
 @Controller('auth')
 export class AuthController {
@@ -31,10 +32,21 @@ export class AuthController {
 
   @Get('discord/callback')
   @UseGuards(AuthGuard('discord'))
-  async discordCallback(@GetUser() user: User) {
+  async discordCallback(
+    @GetUser() user: User,
+    @Res() res: Response
+  ) {
     const accessToken = this.authService.issueAccessToken(user.user_id);
     const refreshToken = await this.authService.issueRefreshToken(user.user_id);
-    return { token: accessToken, accessToken, refreshToken };
+
+    const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:3001';
+
+    const redirectUrl = `${frontendUrl}/discord/callback?accessToken=${accessToken}&refreshToken=${refreshToken}`;
+
+    console.log(redirectUrl)
+
+    res.redirect(redirectUrl);
+
   }
 
   @HttpCode(200)
