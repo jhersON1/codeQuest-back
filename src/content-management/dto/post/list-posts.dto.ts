@@ -1,6 +1,6 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { IsArray, IsEnum, IsInt, IsOptional, IsString, Max, Min } from 'class-validator';
-import { Type } from 'class-transformer';
+import { Type, Transform } from 'class-transformer';
 import { PostStatus, PostVisibility } from '../../entities/post/post.entity';
 
 export type PostSort =
@@ -40,26 +40,40 @@ export class ListPostsDto {
 
   @ApiPropertyOptional({ example: [1, 2] })
   @IsOptional()
+  @Transform(({ value }) => {
+    if (value === undefined || value === null) return undefined;
+    return Array.isArray(value) ? value.map((v) => Number(v)) : [Number(value)];
+  })
   @IsArray()
-  @Type(() => Number)
   @IsInt({ each: true })
   categoryIds?: number[];
 
   @ApiPropertyOptional({ example: ['backend', 'node'] })
   @IsOptional()
+  @Transform(({ value }) => {
+    if (value === undefined || value === null) return undefined;
+    return Array.isArray(value) ? value : [value];
+  })
   @IsArray()
   @IsString({ each: true })
   categorySlugs?: string[];
 
   @ApiPropertyOptional({ example: [10, 20] })
   @IsOptional()
+  @Transform(({ value }) => {
+    if (value === undefined || value === null) return undefined;
+    return Array.isArray(value) ? value.map((v) => Number(v)) : [Number(value)];
+  })
   @IsArray()
-  @Type(() => Number)
   @IsInt({ each: true })
   tagIds?: number[];
 
   @ApiPropertyOptional({ example: ['nestjs', 'orm'] })
   @IsOptional()
+  @Transform(({ value }) => {
+    if (value === undefined || value === null) return undefined;
+    return Array.isArray(value) ? value : [value];
+  })
   @IsArray()
   @IsString({ each: true })
   tagSlugs?: string[];
