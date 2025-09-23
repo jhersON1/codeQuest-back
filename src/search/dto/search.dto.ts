@@ -21,6 +21,15 @@ export class SearchPostsDto {
   @IsNumber()
   tagId?: number;
 
+  // Prefer slug-based filters to match index
+  @IsOptional()
+  @IsString()
+  categorySlug?: string;
+
+  @IsOptional()
+  @IsString()
+  tagSlug?: string;
+
   @IsOptional()
   @IsString()
   authorId?: string;

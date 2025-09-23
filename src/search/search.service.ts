@@ -44,6 +44,8 @@ export class SearchService implements OnModuleInit {
       search = '',
       categoryId,
       tagId,
+      categorySlug,
+      tagSlug,
       authorId,
       status,
       sortBy,
@@ -54,10 +56,14 @@ export class SearchService implements OnModuleInit {
 
     const filters: string[] = [];
 
-    if (categoryId) {
+    if (categorySlug) {
+      filters.push(`categories = "${categorySlug}"`);
+    } else if (categoryId) {
       filters.push(`categories = "${categoryId}"`);
     }
-    if (tagId) {
+    if (tagSlug) {
+      filters.push(`tags = "${tagSlug}"`);
+    } else if (tagId) {
       filters.push(`tags = "${tagId}"`);
     }
     if (authorId) {
@@ -85,6 +91,8 @@ export class SearchService implements OnModuleInit {
       search = '',
       categoryId,
       tagId,
+      categorySlug,
+      tagSlug,
       authorId,
       status,
       sortBy,
@@ -94,8 +102,10 @@ export class SearchService implements OnModuleInit {
     } = queryParams;
 
     const filters: string[] = [];
-    if (categoryId) filters.push(`categories = "${categoryId}"`);
-    if (tagId) filters.push(`tags = "${tagId}"`);
+    if (categorySlug) filters.push(`categories = "${categorySlug}"`);
+    else if (categoryId) filters.push(`categories = "${categoryId}"`);
+    if (tagSlug) filters.push(`tags = "${tagSlug}"`);
+    else if (tagId) filters.push(`tags = "${tagId}"`);
     if (authorId) filters.push(`author_user_id = "${authorId}"`);
     if (status) filters.push(`status = "${status}"`);
 
